@@ -1,8 +1,12 @@
-import  matplotlib.pyplot as plt
+from myQueue import myQueue
 
-x = [0.9,0.8,0.7]
-y = [82,66,22]
-x = list(reversed(x))
-y = list(reversed(y))
-plt.plot(x,y,"b")
-plt.show()
+red = myQueue(3)
+red.put(3)
+red.put(2)
+red.put(4)
+red.put(1)
+red.put(7)
+elems = red.get();
+for elem in elems:
+    print(elem)
+

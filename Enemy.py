@@ -31,7 +31,7 @@ class Enemy:
         self.energy = self.max_energy
     def step(self,p):
         spellID = 0
-        self.spells[spellID].cast(self,p)
+        self.spells[spellID].cast(self, p)
         return spellID
     def initFuzzy(self,p):
         playerHealth = ctrl.Antecedent(np.arange(0, p.max_health+1, 1), 'playerHealth')
