@@ -102,6 +102,7 @@ class Igra():
             self.game_winner()
         print(self.winner+str(i))
     def checkEF(self, episodes, Ef, dEf):
+        self.player2.initFuzzy(self.player1)
         #ef = 1.0
         #deltaEf = 0.1
         ef = Ef
@@ -129,8 +130,7 @@ class Igra():
                     else:
                         self.doBuffsEnemy()
                         #self.player2.step(self.player1)
-                        action = self.player2.get_next_action(self.player2.prev_state)
-                        state = self.player2.take_action(action, self.player1)
+                        self.player2.stepFuzzy(self.player1)
                     potez = 1-potez
                     self.game_winner()
                 if self.winner == 'Malis':
@@ -154,13 +154,13 @@ class Igra():
         plt.legend()
         plt.show()
 def check_player():
-    game = Igra(DeepMalis2(1000,50,1000, tag='Novi11100', exploration_factor=0.5), #Novi6dobar
-                DeepMalis3(1000,50,1000, tag='Novi11100', exploration_factor=1.0))
-                #Enemy2(1000,12,200000, tag='Enemy2', exploration_factor=1))
+    game = Igra(#DeepMalis2(1000,50,1000, tag='Novi11100', exploration_factor=0.5), #Novi6dobar
+                DeepMalis3(1000,50,1000, tag='Novi11100', exploration_factor=1.0),
+                Enemy2(1000,12,200000, tag='Enemy2', exploration_factor=1))
                 #Enemy(2000,12,200000, tag='Enemy', exploration_factor=1))
     
     #game.main(101)
-    game.checkEF(1000, 1, 0.05)
+    game.checkEF(1000, 1, 0.1)
     #game.play_game()
 
 ####Za pokretanje odkomentarisati ovo ispod
