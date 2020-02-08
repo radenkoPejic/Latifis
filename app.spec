@@ -4,7 +4,7 @@ block_cipher = None
 
 
 a = Analysis(['app.py'],
-             pathex=['C:\\Users\\pasaj\\Desktop\\LatifisProjekat'],
+             pathex=['C:\\Users\\Rade\\PycharmProjects\\noviP'],
              binaries=[],
              datas=[],
              hiddenimports=[],
@@ -26,7 +26,7 @@ exe = EXE(pyz,
           bootloader_ignore_signals=False,
           strip=False,
           upx=True,
-          console=False )
+          console=True )
 coll = COLLECT(exe,
                a.binaries,
                a.zipfiles,
