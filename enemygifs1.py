@@ -90,6 +90,8 @@ class EnemyAttackGif1:
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.attackSound = pygame.mixer.Sound("resources/enemy1attack.wav")
 		self.criticalHitSound = pygame.mixer.Sound("resources/criticalHit.wav")
+		self.attackSound.set_volume(self.app.musicVolume/100)
+		self.criticalHitSound.set_volume(self.app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -141,7 +143,7 @@ class EnemyAttackGif1:
 
 
 class EnemyDodgeGif1:
-	def __init__(self, parent, canvas, x, y):
+	def __init__(self, parent, canvas, x, y, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -153,6 +155,7 @@ class EnemyDodgeGif1:
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.sound = pygame.mixer.Sound("resources/enemydodge.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -195,6 +198,8 @@ class EnemyEnergyAttackGif1:
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.attackSound = pygame.mixer.Sound("resources/enemy1energy.wav")
 		self.criticalHitSound = pygame.mixer.Sound("resources/criticalHit.wav")
+		self.attackSound.set_volume(self.app.musicVolume/100)
+		self.criticalHitSound.set_volume(self.app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -257,6 +262,8 @@ class EnemyBurnAttackGif1:
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.attackSound = pygame.mixer.Sound("resources/enemy1burn.wav")
 		self.criticalHitSound = pygame.mixer.Sound("resources/criticalHit.wav")
+		self.attackSound.set_volume(self.app.musicVolume/100)
+		self.criticalHitSound.set_volume(self.app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -319,6 +326,8 @@ class EnemyWeakenAttackGif1:
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.attackSound = pygame.mixer.Sound("resources/enemy1weaken.wav")
 		self.criticalHitSound = pygame.mixer.Sound("resources/criticalHit.wav")
+		self.attackSound.set_volume(self.app.musicVolume/100)
+		self.criticalHitSound.set_volume(self.app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):

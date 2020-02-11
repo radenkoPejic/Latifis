@@ -4,48 +4,44 @@ from pathlib import Path
 import keras.layers as Kl
 import keras.models as Km
 from Player import Malis
-import Spell
+import Spell 
 import numpy as np
-from myQueue import myQueue
-
 
 class DeepMalis(Malis):
 
     def __init__(self, health, damage, energy, tag, exploration_factor=1):
         super().__init__(health, damage, energy, tag, exploration_factor)
         self.value_model = self.load_model()
-        self.queue = myQueue(5)
 
     @staticmethod
     def state2array(state):
-        index = int(state[0] * 100 + state[1])
+        index = int(state[0]*100+state[1])
         return np.array([index])
-
     def get_next_action(self, state):
-        if random.random() > self.exploration_rate:  # Explore (gamble) or exploit (greedy)
+        if random.random() > self.exploration_rate: # Explore (gamble) or exploit (greedy)
             return self.greedy_action(state)
         else:
             return self.random_action()
 
     def greedy_action(self, state):
         actions = self.calc_value(state)
-        # print(actions)
+        #print(actions)
         for i in range(len(self.spells)):
-            if (not self.spells[i].castable(self)):
-                actions[0, i] = -999999
-                # print('=================Greedy '+str(np.argmax(actions)))
+            if(not self.spells[i].castable(self)):
+                actions[0,i] = -999999 
+        #print('=================Greedy '+str(np.argmax(actions)))
         return np.argmax(actions)
 
     def random_action(self):
         available_spells = self.available_spell()
         randomSpell = random.choice(available_spells)
         for i in range(len(self.spells)):
-            if (randomSpell == self.spells[i]):
-                # print('=================Random '+str(i))
+            if(randomSpell == self.spells[i]):
+                #print('=================Random '+str(i))
                 return i
         print('=================Random omasio -1')
         return -1
-
+    
     def update(self, state, winner, turnNum, action):
         # Train our model with new data
         self.train(state, winner, turnNum, action)
@@ -53,14 +49,12 @@ class DeepMalis(Malis):
         # Finally shift our exploration_rate toward zero (less gambling)
         if self.exploration_rate > 0:
             self.exploration_rate -= self.exploration_delta
-
+    
     def train(self, state, winner, turnNum, action):
-        self.queue.put(state)
         v_s = self.calc_value(self.prev_state)
         R = self.reward(winner, state, turnNum)
-        print("Reward: "+str(R))
-        v_s_tag = self.calc_value(state) if winner is None else np.zeros((1, 4))
-        v_s[0, action] = R + self.epsilon * np.amax(v_s_tag)  # v_s_tag[0,action]#
+        v_s_tag = self.calc_value(state) if winner is None else np.zeros((1,4))
+        v_s[0,action] = R + self.epsilon*np.amax(v_s_tag)
         X_train = self.state2array(self.prev_state)
         target = v_s
         if target is not None:
@@ -71,7 +65,7 @@ class DeepMalis(Malis):
         s = 'model_values' + self.tag + '.h5'
         model_file = Path(s)
         if model_file.is_file():
-            model = Km.load_model(s)
+            model = Km.load_model(s, compile = False)
             print('load model: ' + s)
         else:
             print('new model')
@@ -86,7 +80,7 @@ class DeepMalis(Malis):
 
     def calc_value(self, state):
         return self.value_model.predict(self.state2array(state))
-
+    
     def save_values(self, c):
         s = 'model_values' + self.tag + c + '.h5'
         try:
@@ -94,27 +88,29 @@ class DeepMalis(Malis):
         except:
             pass
         self.value_model.save(s)
-
-
+        
+        
+        
+        
 class DeepMalis2(DeepMalis):
 
     def __init__(self, health, damage, energy, tag, exploration_factor=1):
         super().__init__(health, damage, energy, tag, exploration_factor)
         self.spells = []
-        self.spells.append(Spell.BurnAttack(1, 150, 60))
-        self.spells.append(Spell.Long_FullHeal(7, 300, 10, 3))
-        self.spells.append(Spell.Charge(0, 0, 400))
-        self.spells.append(Spell.Stun(7, 200, 3))
-
-
+        self.spells.append(Spell.BurnAttack(0,150,60))
+        self.spells.append(Spell.Long_FullHeal(7,300,10,3))
+        self.spells.append(Spell.Charge(0,0,400))
+        self.spells.append(Spell.Stun(7,200,3))
+        
 class DeepMalis3(DeepMalis):
 
     def __init__(self, health, damage, energy, tag, exploration_factor=1):
         super().__init__(health, damage, energy, tag, exploration_factor)
         self.spells = []
-        self.spells.append(Spell.WeakenAttack(2, 100, 60))
-        self.spells.append(Spell.Flexible(3, 300, 30, 2))
-        self.spells.append(Spell.ProtectionCharge(0, 0, 400))
-        self.spells.append(Spell.DrainAttack(5, 400, 100))
-
-
+        self.spells.append(Spell.WeakenAttack(2,100,60))
+        self.spells.append(Spell.Flexible(3,300,30,2))
+        self.spells.append(Spell.ProtectionCharge(0,0,400))
+        self.spells.append(Spell.DrainAttack(5,400,100))
+        
+        
+        

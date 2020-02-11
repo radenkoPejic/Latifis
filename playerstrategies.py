@@ -46,62 +46,33 @@ class PlayerStrategy1(PlayerStrategy):
 		
 	def setPlayerSpellGifs(self, app):
 		app.playerSpellGifs.append(PlayerAttackGif1(app.root, app.backgroundCanvas, 270, 303, app.afterTime, app, 0))
-		app.playerSpellGifs.append(PlayerHealGif1(app.root, app.backgroundCanvas, 235, 330))
-		app.playerSpellGifs.append(PlayerChargeGif1(app.root, app.backgroundCanvas, 145, 290))
-		app.playerSpellGifs.append(PlayerStunGif1(app.root,app.backgroundCanvas, 620, 380, app.afterTime))
+		app.playerSpellGifs.append(PlayerHealGif1(app.root, app.backgroundCanvas, 235, 330, app))
+		app.playerSpellGifs.append(PlayerChargeGif1(app.root, app.backgroundCanvas, 145, 290, app))
+		app.playerSpellGifs.append(PlayerStunGif1(app.root,app.backgroundCanvas, 620, 380, app.afterTime, app))
 	
 	def setPlayerDodgeGif(self, app):
-		app.dodgeGifs.append(PlayerDodgeGif1(app.root, app.backgroundCanvas, 255, 350))
+		app.dodgeGifs.append(PlayerDodgeGif1(app.root, app.backgroundCanvas, 255, 350, app))
 		
 	def setPlayerSpells(self, app):
 	
 		app.spells = app.players[0].spells
+		
 		self.attackPhoto0 = Image.open("resources/p1attack0.jpg")
 		self.attackPhoto0 = self.attackPhoto0.resize((50, 50))
-		app.spellImages0.append(ImageTk.PhotoImage(self.attackPhoto0))
-		self.attackPhoto1 = Image.open("resources/p1attack1.jpg")
-		self.attackPhoto1 = self.attackPhoto1.resize((52, 52))
-		app.spellImages0.append(ImageTk.PhotoImage(self.attackPhoto1))
-		self.attackPhoto2 = Image.open("resources/p1attack2.jpg")
-		self.attackPhoto2 = self.attackPhoto1.resize((50, 50))
-		app.spellImages0.append(ImageTk.PhotoImage(self.attackPhoto2))
-		app.spellImages.append(app.spellImages0)
-		
+		app.spellImages.append(ImageTk.PhotoImage(self.attackPhoto0))
 		
 		self.healPhoto0 = Image.open("resources/p1heal0.jpg")
 		self.healPhoto0 = self.healPhoto0.resize((50, 50))
-		app.spellImages1.append(ImageTk.PhotoImage(self.healPhoto0))
-		self.healPhoto1 = Image.open("resources/p1heal1.jpg")
-		self.healPhoto1 = self.healPhoto1.resize((52, 52))
-		app.spellImages1.append(ImageTk.PhotoImage(self.healPhoto1))
-		self.healPhoto2 = Image.open("resources/p1heal2.jpg")
-		self.healPhoto2 = self.healPhoto2.resize((50, 50))
-		app.spellImages1.append(ImageTk.PhotoImage(self.healPhoto2))
-		app.spellImages.append(app.spellImages1)
-		
+		app.spellImages.append(ImageTk.PhotoImage(self.healPhoto0))
 		
 		self.chargePhoto0 = Image.open("resources/p1charge0.png")
 		self.chargePhoto0 = self.chargePhoto0.resize((50, 50))
-		app.spellImages2.append(ImageTk.PhotoImage(self.chargePhoto0))
-		self.chargePhoto1 = Image.open("resources/p1charge1.png")
-		self.chargePhoto1 = self.chargePhoto1.resize((52, 52))
-		app.spellImages2.append(ImageTk.PhotoImage(self.chargePhoto1))
-		self.chargePhoto2 = Image.open("resources/p1charge2.png")
-		self.chargePhoto2 = self.chargePhoto1.resize((50, 50))
-		app.spellImages2.append(ImageTk.PhotoImage(self.chargePhoto2))
-		app.spellImages.append(app.spellImages2)
-				
-		
+		app.spellImages.append(ImageTk.PhotoImage(self.chargePhoto0))
+
 		self.stunPhoto0 = Image.open("resources/p1stun0.jpg")
 		self.stunPhoto0 = self.stunPhoto0.resize((50, 50))
-		app.spellImages3.append(ImageTk.PhotoImage(self.stunPhoto0))
-		self.stunPhoto1 = Image.open("resources/p1stun1.jpg")
-		self.stunPhoto1 = self.stunPhoto1.resize((52, 52))
-		app.spellImages3.append(ImageTk.PhotoImage(self.stunPhoto1))
-		self.stunPhoto2 = Image.open("resources/p1stun2.jpg")
-		self.stunPhoto2 = self.stunPhoto2.resize((50, 50))
-		app.spellImages3.append(ImageTk.PhotoImage(self.stunPhoto2))
-		app.spellImages.append(app.spellImages3)
+		app.spellImages.append(ImageTk.PhotoImage(self.stunPhoto0))
+		
 		
 	def setEnvironmentBuff(self, tag, player):
 		if (tag == "lava"):
@@ -142,62 +113,33 @@ class PlayerStrategy2(PlayerStrategy):
 		
 	def setPlayerSpellGifs(self, app):
 		app.playerSpellGifs.append(PlayerAttackGif2(app.root, app.backgroundCanvas, 270, 303, app.afterTime, app, 0))
-		app.playerSpellGifs.append(PlayerFlexGif2(app.root, app.backgroundCanvas, 255, 360))
-		app.playerSpellGifs.append(PlayerChargeGif2(app.root, app.backgroundCanvas, 245, 350))
-		app.playerSpellGifs.append(PlayerDrainGif2(app.root,app.backgroundCanvas, 630, 330, app.afterTime))
+		app.playerSpellGifs.append(PlayerFlexGif2(app.root, app.backgroundCanvas, 255, 360, app))
+		app.playerSpellGifs.append(PlayerChargeGif2(app.root, app.backgroundCanvas, 245, 350, app))
+		app.playerSpellGifs.append(PlayerDrainGif2(app.root,app.backgroundCanvas, 630, 330, app.afterTime, app))
 	
 	def setPlayerDodgeGif(self, app):
-		app.dodgeGifs.append(PlayerDodgeGif2(app.root, app.backgroundCanvas, 250, 350))
+		app.dodgeGifs.append(PlayerDodgeGif2(app.root, app.backgroundCanvas, 250, 350, app))
 		
 	def setPlayerSpells(self, app):
 	
 		app.spells = app.players[0].spells
+		
 		self.attackPhoto0 = Image.open("resources/p2attack0.jpg")
 		self.attackPhoto0 = self.attackPhoto0.resize((50, 50))
-		app.spellImages0.append(ImageTk.PhotoImage(self.attackPhoto0))
-		self.attackPhoto1 = Image.open("resources/p2attack1.jpg")
-		self.attackPhoto1 = self.attackPhoto1.resize((52, 52))
-		app.spellImages0.append(ImageTk.PhotoImage(self.attackPhoto1))
-		self.attackPhoto2 = Image.open("resources/p2attack2.jpg")
-		self.attackPhoto2 = self.attackPhoto2.resize((50, 50))
-		app.spellImages0.append(ImageTk.PhotoImage(self.attackPhoto2))
-		app.spellImages.append(app.spellImages0)
-		
-		
+		app.spellImages.append(ImageTk.PhotoImage(self.attackPhoto0))
+
 		self.healPhoto0 = Image.open("resources/p2flex0.jpg")
 		self.healPhoto0 = self.healPhoto0.resize((50, 50))
-		app.spellImages1.append(ImageTk.PhotoImage(self.healPhoto0))
-		self.healPhoto1 = Image.open("resources/p2flex1.jpg")
-		self.healPhoto1 = self.healPhoto1.resize((52, 52))
-		app.spellImages1.append(ImageTk.PhotoImage(self.healPhoto1))
-		self.healPhoto2 = Image.open("resources/p2flex2.jpg")
-		self.healPhoto2 = self.healPhoto2.resize((50, 50))
-		app.spellImages1.append(ImageTk.PhotoImage(self.healPhoto2))
-		app.spellImages.append(app.spellImages1)
-		
+		app.spellImages.append(ImageTk.PhotoImage(self.healPhoto0))
 		
 		self.chargePhoto0 = Image.open("resources/p2charge0.jpg")
 		self.chargePhoto0 = self.chargePhoto0.resize((50, 50))
-		app.spellImages2.append(ImageTk.PhotoImage(self.chargePhoto0))
-		self.chargePhoto1 = Image.open("resources/p2charge1.jpg")
-		self.chargePhoto1 = self.chargePhoto1.resize((52, 52))
-		app.spellImages2.append(ImageTk.PhotoImage(self.chargePhoto1))
-		self.chargePhoto2 = Image.open("resources/p2charge2.jpg")
-		self.chargePhoto2 = self.chargePhoto2.resize((50, 50))
-		app.spellImages2.append(ImageTk.PhotoImage(self.chargePhoto2))
-		app.spellImages.append(app.spellImages2)
-				
+		app.spellImages.append(ImageTk.PhotoImage(self.chargePhoto0))
 		
 		self.stunPhoto0 = Image.open("resources/p2drain0.jpg")
 		self.stunPhoto0 = self.stunPhoto0.resize((50, 50))
-		app.spellImages3.append(ImageTk.PhotoImage(self.stunPhoto0))
-		self.stunPhoto1 = Image.open("resources/p2drain1.jpg")
-		self.stunPhoto1 = self.stunPhoto1.resize((52, 52))
-		app.spellImages3.append(ImageTk.PhotoImage(self.stunPhoto1))
-		self.stunPhoto2 = Image.open("resources/p2drain2.jpg")
-		self.stunPhoto2 = self.stunPhoto2.resize((50, 50))
-		app.spellImages3.append(ImageTk.PhotoImage(self.stunPhoto2))
-		app.spellImages.append(app.spellImages3)
+		app.spellImages.append(ImageTk.PhotoImage(self.stunPhoto0))
+		
 		
 	def setEnvironmentBuff(self, tag, player):
 		if (tag == "forest"):
@@ -234,7 +176,7 @@ class EnemyStrategy1(PlayerStrategy):
 		app.enemySpellGifs.append(EnemyWeakenAttackGif1(app.root, app.backgroundCanvas, 373, 342, app.afterTime, app, 3))
 	
 	def setPlayerDodgeGif(self, app):
-		app.dodgeGifs.append(EnemyDodgeGif1(app.root, app.backgroundCanvas, 680, 350))
+		app.dodgeGifs.append(EnemyDodgeGif1(app.root, app.backgroundCanvas, 680, 350, app))
 	
 	def setEnvironmentBuff(self, tag, player):
 		if (tag == "lava"):
@@ -261,17 +203,17 @@ class EnemyStrategy2(PlayerStrategy):
 	
 	def setPlayerGif(self, app):
 		app.enemyGif = EnemyGif2(app.root, app.backgroundCanvas, 800, 342, app.players,\
-						app.enemySpellGifs, app.playerText, app.enemyText, app.dodgeGifs, app.criticalImages)
+						app.enemySpellGifs, app.playerText, app.enemyText, app.dodgeGifs, app.criticalImages, app)
 		
 		
 	def setPlayerSpellGifs(self, app):
-		app.enemySpellGifs.append(EnemyAttackGif2(app.root, app.backgroundCanvas, 583, 392))
-		app.enemySpellGifs.append(EnemyHealGif2(app.root, app.backgroundCanvas, 750, 457))
-		app.enemySpellGifs.append(EnemyRewindGif2(app.root, app.backgroundCanvas, 750, 400))
+		app.enemySpellGifs.append(EnemyAttackGif2(app.root, app.backgroundCanvas, 583, 392, app))
+		app.enemySpellGifs.append(EnemyHealGif2(app.root, app.backgroundCanvas, 750, 457, app))
+		app.enemySpellGifs.append(EnemyRewindGif2(app.root, app.backgroundCanvas, 750, 400, app))
 		app.enemySpellGifs.append(EnemyWeakenAttackGif2(app.root, app.backgroundCanvas, 530, 407, app.afterTime, app, 3))
 	
 	def setPlayerDodgeGif(self, app):
-		app.dodgeGifs.append(EnemyDodgeGif2(app.root, app.backgroundCanvas, 680, 350))
+		app.dodgeGifs.append(EnemyDodgeGif2(app.root, app.backgroundCanvas, 680, 350, app))
 	
 	def setEnvironmentBuff(self, tag, player):
 		if (tag == "ice"):

@@ -94,7 +94,7 @@ class PlayerGif1:
 			
 
 class PlayerWinnerGif1:
-	def __init__(self, parent, canvas, x, y):
+	def __init__(self, parent, canvas, x, y, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -106,6 +106,7 @@ class PlayerWinnerGif1:
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.sound = pygame.mixer.Sound("resources/playerwinner.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -155,6 +156,9 @@ class PlayerAttackGif1:
 		self.launchSound = pygame.mixer.Sound("resources/player1launch.wav")
 		self.hitSound = pygame.mixer.Sound("resources/player1hit.wav")
 		self.criticalHitSound = pygame.mixer.Sound("resources/criticalHit.wav")
+		self.launchSound.set_volume(self.app.musicVolume/100)
+		self.hitSound.set_volume(self.app.musicVolume/100)
+		self.criticalHitSound.set_volume(self.app.musicVolume/100)
 	
 		self.animate(0)
 		
@@ -212,7 +216,7 @@ class PlayerAttackGif1:
 		
 	
 class PlayerHealGif1:
-	def __init__(self, parent, canvas, x, y):
+	def __init__(self, parent, canvas, x, y, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -224,6 +228,7 @@ class PlayerHealGif1:
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.sound = pygame.mixer.Sound("resources/player1heal.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 		
@@ -250,7 +255,7 @@ class PlayerHealGif1:
 		
 		
 class PlayerChargeGif1:
-	def __init__(self, parent, canvas, x, y):
+	def __init__(self, parent, canvas, x, y, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -262,6 +267,7 @@ class PlayerChargeGif1:
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.sound = pygame.mixer.Sound("resources/player1charge.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 		
@@ -289,7 +295,7 @@ class PlayerChargeGif1:
 
 
 class PlayerStunGif1:
-	def __init__(self, parent, canvas, x, y, afterTime):
+	def __init__(self, parent, canvas, x, y, afterTime, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -301,6 +307,7 @@ class PlayerStunGif1:
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.sound = pygame.mixer.Sound("resources/player1stun.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -331,11 +338,12 @@ class PlayerStunGif1:
 	def goOn(self):
 		self.pausing = False
 		self.canvas.itemconfig(self.image, state="normal")
+		#self.sound.set_volume(0)
 		self.sound.play()
 		
 
 class PlayerDodgeGif1:
-	def __init__(self, parent, canvas, x, y):
+	def __init__(self, parent, canvas, x, y, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -347,6 +355,7 @@ class PlayerDodgeGif1:
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.sound = pygame.mixer.Sound("resources/player1dodge.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):

@@ -5,7 +5,7 @@ import pygame
 
 
 class EnemyGif2:
-	def __init__(self, parent, canvas, x, y, players, spellGifs, playerText, enemyText, dodgeGifs, criticalImages):
+	def __init__(self, parent, canvas, x, y, players, spellGifs, playerText, enemyText, dodgeGifs, criticalImages, app):
 		self.parent = parent
 		self.canvas = canvas
 		self.spellGifs = spellGifs
@@ -24,6 +24,7 @@ class EnemyGif2:
 		self.animating = True
 		self.pausing = True
 		self.criticalHitSound = pygame.mixer.Sound("resources/criticalHit.wav")
+		self.criticalHitSound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -77,7 +78,7 @@ class EnemyGif2:
 
 
 class EnemyAttackGif2:
-	def __init__(self, parent, canvas, x, y):
+	def __init__(self, parent, canvas, x, y, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -89,6 +90,7 @@ class EnemyAttackGif2:
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.attackSound = pygame.mixer.Sound("resources/enemy2attack.wav")
+		self.attackSound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -113,7 +115,7 @@ class EnemyAttackGif2:
 		self.attackSound.play()
 
 class EnemyHealGif2:
-	def __init__(self, parent, canvas, x, y):
+	def __init__(self, parent, canvas, x, y, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -126,6 +128,7 @@ class EnemyHealGif2:
 		self.canvas.itemconfig(self.image, state="hidden")
 		
 		self.sound = pygame.mixer.Sound("resources/enemy2heal.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -150,7 +153,7 @@ class EnemyHealGif2:
 		self.sound.play()
 		
 class EnemyDodgeGif2:
-	def __init__(self, parent, canvas, x, y):
+	def __init__(self, parent, canvas, x, y, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -162,6 +165,7 @@ class EnemyDodgeGif2:
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.sound = pygame.mixer.Sound("resources/enemydodge.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -186,7 +190,7 @@ class EnemyDodgeGif2:
 		self.sound.play()
 		
 class EnemyRewindGif2:
-	def __init__(self, parent, canvas, x, y):
+	def __init__(self, parent, canvas, x, y, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -197,8 +201,8 @@ class EnemyRewindGif2:
 		self.animating = True
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
-		
 		self.sound = pygame.mixer.Sound("resources/enemy2rewind.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -241,6 +245,8 @@ class EnemyWeakenAttackGif2:
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.attackSound = pygame.mixer.Sound("resources/enemy2weaken.wav")
 		self.criticalHitSound = pygame.mixer.Sound("resources/criticalHit.wav")
+		self.attackSound.set_volume(self.app.musicVolume/100)
+		self.criticalHitSound.set_volume(self.app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):

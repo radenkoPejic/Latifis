@@ -1,7 +1,6 @@
 from DeepMalis import *
 from Enemy import *
 from tkinter import *
-import matplotlib.pyplot as plt
 
 class Igra():
     def __init__(self, player, enemy):
@@ -102,17 +101,14 @@ class Igra():
             self.game_winner()
         print(self.winner+str(i))
     def checkEF(self, episodes, Ef, dEf):
-        self.player2.initFuzzy(self.player1)
         #ef = 1.0
         #deltaEf = 0.1
         ef = Ef
         deltaEf = dEf
-        x = []
-        y = []
         while(ef >= 0.0):
             sum = 0
             won = 0
-            #print(ef)
+            print(ef)
             for episode in range(episodes):
                 i = 0
                 potez = 0
@@ -129,8 +125,7 @@ class Igra():
                         state = self.player1.take_action(action, self.player2)
                     else:
                         self.doBuffsEnemy()
-                        #self.player2.step(self.player1)
-                        self.player2.stepFuzzy(self.player1)
+                        self.player2.step(self.player1)
                     potez = 1-potez
                     self.game_winner()
                 if self.winner == 'Malis':
@@ -143,24 +138,15 @@ class Igra():
             print(sum//episodes)
             print(sum)
             print("---")
-            x.append(ef)
-            y.append(won*100/episodes)
             ef -= deltaEf
-        x = list(reversed(x))
-        y = list(reversed(y))
-        plt.plot(x,y,"b", label = "Episodes = "+str(episodes))
-        plt.xlabel("Exploration factor")
-        plt.ylabel("Win rate%")
-        plt.legend()
-        plt.show()
 def check_player():
-    game = Igra(DeepMalis2(1000,50,1000, tag='NFuzzyP1E1_', exploration_factor=1), #Novi6dobar
-                #DeepMalis3(1000,50,1000, tag='Novi11100', exploration_factor=1.0),
+    game = Igra(#DeepMalis2(1000,50,1000, tag='Novi5100', exploration_factor=0.5), #Novi6dobar
+                DeepMalis3(1000,50,1000, tag='Novi9i210001', exploration_factor=1.0),
                 #Enemy2(1000,12,200000, tag='Enemy2', exploration_factor=1))
                 Enemy(2000,12,200000, tag='Enemy', exploration_factor=1))
     
-    game.main(1010)
-    #game.checkEF(100, 1, 0.2)
+    game.main(101)
+    #game.checkEF(100, 1, 1)
     #game.play_game()
 
 ####Za pokretanje odkomentarisati ovo ispod

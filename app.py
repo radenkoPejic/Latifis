@@ -58,26 +58,24 @@ class Application():
 		self.spellCanvasImage = None
 		self.spellCanvasText = None
 		
-		self.spellCanvasImages = []
-		self.spellCanvasTexts = []
+	
+		self.spellCanvasButtons = []
+		self.lightBrown = "#cc9e71"
+		self.darkBrown = "#522e0a"
 		
 		
 		self.afterTime = 1500
 		self.switchTime = 500
 		self.level = 0
+		self.side = 0
 		
 		self.potez = None
 		self.cooldowns = []
+		self.castables = []
 		self.playerActionIndex = None
 		self.enemyActionIndex = None
 		
 		self.spellImages = []
-		self.spellImages0 = []
-		self.spellImages1 = []
-		self.spellImages2 = []
-		self.spellImages3 = []
-		
-		
 		self.spells = []
 		
 		self.looserImage = ImageTk.PhotoImage(Image.open("resources/looser.jpg"))
@@ -116,6 +114,10 @@ class Application():
 		
 		self.game = None
 		
+		
+		self.musicVolume = 100
+		self.playerModes = []
+		self.playerSelected = []
 
 	
 	def showPlayerBuffs(self):
@@ -174,74 +176,125 @@ class Application():
 		self.enemyEnergyBar["maximum"] = 100
 		
 		self.updateStatus()
-		self.root.after(self.afterTime, self.updateStatus)
 		
 		if self.game.winner is None:
 			turn = self.potez//2 + 1
 			side = self.potez % 2
-			self.potez += 1
 			
 			if self.players[0].health < 150:
 				self.pulse.play()
-		
-			if (side == 0):
-				self.game.doBuffsPlayer()
-				self.playerActionIndex = self.players[0].get_next_action(self.players[0].prev_state)
+			
+			#prelazni deo izmedju strana
+			if self.playerSelected[side]==0:
+			
+				if side == 0:
+					self.turnCanvas.itemconfig(self.turnText, text = "Player's turn " + str(turn))
+					self.enemyGif.pause()
+					self.enemySpellGifs[self.enemyActionIndex].pause()
+					self.backgroundCanvas.itemconfig(self.playerText, text = "")
+					if self.playerSelected[side] == 0:
+						self.game.doBuffsPlayer()
+						self.showPlayerBuffs()
+				else:
+					self.turnCanvas.itemconfig(self.turnText, text = "Enemy's turn " + str(turn))
+					self.playerGif.pause()
+					self.playerSpellGifs[self.playerActionIndex].pause()
+					self.backgroundCanvas.itemconfig(self.enemyText, text = "")
+					if self.playerSelected[side] == 0:
+						self.game.doBuffsEnemy()
+						self.showEnemyBuffs()
+
+				self.dodgeGifs[side].pause()
 				
+				#ako je igrac kompjuterski nema cekanja na odabir spella klikom misa
+				if self.playerModes[side] == "computer":
+					self.playerSelected[side] = 1
+					
+				#drugog igraca resetujemo
+				self.playerSelected[1-side] = 0
+				
+				#pamtimo cooldownove pre odigravanja poteza zbog prikaza
 				self.cooldowns = []
+				self.castables = []
 				for i in range (len(self.players[0].spells)):
 					self.cooldowns.append(self.players[0].spells[i].curr_cooldown)
-				self.cooldowns[self.playerActionIndex] = self.players[0].spells[self.playerActionIndex].cooldown
-			
-			
-				self.players[0].take_action(self.playerActionIndex, self.players[1])
-				action = self.players[0].spells[self.playerActionIndex]
-				self.showPlayerBuffs()
-			else:
-				self.game.doBuffsEnemy()
-				self.enemyActionIndex = self.players[1].stepFuzzy(self.players[0])
-				action = self.players[1].spells[self.enemyActionIndex]
-				self.showEnemyBuffs()
-			
-			
-			
-			
-			
-			#apdejt poteza
-			if (side == 0):
-				self.turnCanvas.itemconfig(self.turnText, text = "Player's turn " + str(turn))
-				self.enemyGif.pause()
-				self.enemySpellGifs[self.enemyActionIndex].pause()
-				self.playerGif.setSpell(action)
-				self.playerGif.goOn()
-				if not self.players[0].stunned:
-					self.playerSpellGifs[self.playerActionIndex].goOn()
-					
-			else:
-				self.turnCanvas.itemconfig(self.turnText, text = "Enemy's turn " + str(turn))
-				self.playerGif.pause()
-				self.playerSpellGifs[self.playerActionIndex].pause()
-				self.enemyGif.setSpell(action)
-				self.enemyGif.goOn()
-				if not self.players[1].stunned:
-					self.enemySpellGifs[self.enemyActionIndex].goOn()
+					self.castables.append(self.players[0].spells[i].castable(self.players[0]))
 				
-			#apdejt sve kucice
-			for ix in range (len(self.cooldowns)):
-				cooldown = self.cooldowns[ix]
-				if (cooldown==0):
-					self.spellCanvas.itemconfig(self.spellCanvasImages[ix], image = self.spellImages[ix][0])
-					self.spellCanvas.itemconfig(self.spellCanvasTexts[ix], text = "")
-				else: 
-					self.spellCanvas.itemconfig(self.spellCanvasImages[ix], image = self.spellImages[ix][2])
-					self.spellCanvas.itemconfig(self.spellCanvasTexts[ix], text = str(cooldown))
+				#apdejt sve kucice
+				for ix in range (len(self.spellCanvasButtons)):
+					if self.castables[ix] == True:
+						self.spellCanvasButtons[ix]["state"] = "normal"
+						self.spellCanvasButtons[ix]["text"] = ""
+						self.spellCanvasButtons[ix]["bg"] = self.lightBrown
+					else:
+						self.spellCanvasButtons[ix]["state"] = "disabled"
+						if self.cooldowns[ix]>0:
+							self.spellCanvasButtons[ix]["text"] = str(self.cooldowns[ix])
+						else:
+							self.spellCanvasButtons[ix]["text"] = ""
+						self.spellCanvasButtons[ix]["bg"] = self.lightBrown
+				
+				#apdejt status barova
+				self.updateStatus()
+				
+				#provera da neko nije izgubio zbog dejstva buffova
+				if self.game.game_winner() != None:
+					self.root.after(self.afterTime+self.switchTime, self.run)
+					return
 			
-			#oznacavanje pogodjene kucice
-			if (side==0):
-				self.spellCanvas.itemconfig(self.spellCanvasImages[self.playerActionIndex], image = self.spellImages[self.playerActionIndex][1])
+			#promenjena strana nakon prelaznog dela
+			self.side = side
+		
+		
+			#igranje sledeceg poteza
+			if self.playerSelected[self.side]==1:
+				self.potez += 1
+				
+				if self.side == 0:
+					if self.playerModes[self.side]=="computer":
+						self.playerActionIndex = self.players[0].get_next_action(self.players[0].prev_state)
+						
+					self.players[0].take_action(self.playerActionIndex, self.players[1])
+					action = self.players[0].spells[self.playerActionIndex]
+				
+				if self.side == 1:
+					self.enemyActionIndex = self.players[1].stepFuzzy(self.players[0])
+					action = self.players[1].spells[self.enemyActionIndex]
+
+				
 			
-			self.game.game_winner()
-			self.root.after(self.afterTime+self.switchTime, self.run)
+				#apdejt poteza
+				if (self.side == 0):
+					self.turnCanvas.itemconfig(self.turnText, text = "Player's turn " + str(turn))
+					self.enemyGif.pause()
+					self.enemySpellGifs[self.enemyActionIndex].pause()
+					self.playerGif.setSpell(action)
+					self.playerGif.goOn()
+					if not self.players[0].stunned:
+						self.playerSpellGifs[self.playerActionIndex].goOn()
+						
+				else:
+					self.turnCanvas.itemconfig(self.turnText, text = "Enemy's turn " + str(turn))
+					self.playerGif.pause()
+					self.playerSpellGifs[self.playerActionIndex].pause()
+					self.enemyGif.setSpell(action)
+					self.enemyGif.goOn()
+					if not self.players[1].stunned:
+						self.enemySpellGifs[self.enemyActionIndex].goOn()
+					
+				
+				
+				#oznacavanje pogodjene kucice
+				if (self.side==0):
+					self.spellCanvasButtons[self.playerActionIndex]["state"] = "normal"
+					self.spellCanvasButtons[self.playerActionIndex]["text"] = ""
+					self.spellCanvasButtons[self.playerActionIndex]["bg"] = "yellow"
+
+				#provera kraja igre	
+				self.game.game_winner()
+				
+				#prelazak na sledeci potez
+				self.root.after(self.afterTime+self.switchTime, self.run)
 			
 		elif self.game.winner == "Malis":
 			self.turnCanvas.itemconfig(self.turnText, text = "Player won")
@@ -253,6 +306,7 @@ class Application():
 			else:
 				self.root.after(2*self.afterTime, self.backToMenu)
 			#povratak u glavni meni
+			
 		else:
 			self.turnCanvas.itemconfig(self.turnText, text = "Enemy won")
 			self.stopGame()
@@ -372,12 +426,23 @@ class Application():
 		self.looserImageCanvas = self.endGameCanvas.create_image(0, 0, image=self.looserImage, anchor = NW)
 		self.endGameCanvas.pack_forget()
 			
-		
+	
+	
+	
 	def startLevel(self): #pokretanje nivoa
 		
 		self.playerActionIndex = 0
 		self.enemyActionIndex = 0
 		
+		self.potez = 0
+		
+		#modovi
+		if self.selectedMode == 0:
+			self.playerModes = ["computer", "computer"]
+		elif self.selectedMode == 1:
+			self.playerModes = ["human", "computer"]
+		
+		self.playerSelected = [0, 0]
 	
 		self.backgroundCanvas.delete("all")
 	
@@ -385,15 +450,10 @@ class Application():
 		self.backgroundCanvas.create_image(0, 0, image = self.backgroundImage, anchor = NW)
 		
 		self.spells = []
-		self.spellCanvasImages = []
-		self.spellCanvasTexts = []
+		self.spellCanvasButtons = []
 		self.criticalImages = []
 		
 		self.spellImages = []
-		self.spellImages0 = []
-		self.spellImages1 = []
-		self.spellImages2 = []
-		self.spellImages3 = []
 		
 		self.cooldowns = [0, 0, 0, 0]
 		
@@ -413,10 +473,19 @@ class Application():
 		self.playerStrategy.setPlayerSpells(self)
 		
 		i = 0
-		for x in range (120, 290, 55):
-			self.spellCanvasImages.append(self.spellCanvas.create_image(x, 12, image = self.spellImages[i][0], anchor = NW))
-			self.spellCanvasTexts.append(self.spellCanvas.create_text(x+15, 20, anchor = NW, text = "", font = ("Purisa", 25, "bold"), fill = "red"))
+		
+		for X in range (120, 290, 55):
+			self.spellCanvasButtons.append(Button(self.spellCanvas, image = self.spellImages[i], text = "", font = ("Purisa", 25, "bold"), compound = CENTER,\
+			bg = self.lightBrown, bd = 2.5, disabledforeground = "red", activebackground = self.lightBrown))
+			self.spellCanvasButtons[i].place(x = X, y = 12, width = 50, height = 50)
+			self.spellCanvasButtons[i].bind("<Enter>", self.hoverColor)
+			self.spellCanvasButtons[i].bind("<Leave>", self.unhoverColor)
+			self.spellCanvasButtons[i].bind("<Button-1>", self.selectAction)
+			if self.playerModes[0]=="human":
+				self.spellCanvasButtons[i]["activebackground"] = "yellow"
 			i+=1
+		
+		
 		
 		self.playerStrategy.setPlayerGif(self)
 		self.enemyStrategy.setPlayerGif(self)
@@ -427,7 +496,7 @@ class Application():
 		self.playerStrategy.setPlayerSpellGifs(self)
 		self.enemyStrategy.setPlayerSpellGifs(self)
 		
-		self.potez = 0
+		
 		
 		self.game = Igra(self.players[0], self.players[1])
 		self.players[1].initFuzzy(self.players[0])
@@ -447,10 +516,10 @@ class Application():
 		
 		if (self.selectedPlayer == 0):
 			self.playerStrategy = PlayerStrategy1("Novi11100", 0.05)
-			self.playerWinnerGif = PlayerWinnerGif1(root, self.endGameCanvas, 0, 0)
+			self.playerWinnerGif = PlayerWinnerGif1(root, self.endGameCanvas, 0, 0, self)
 		else:
 			self.playerStrategy = PlayerStrategy2("Novi11100", 0.05)
-			self.playerWinnerGif = PlayerWinnerGif2(root, self.endGameCanvas, 0, 0)
+			self.playerWinnerGif = PlayerWinnerGif2(root, self.endGameCanvas, 0, 0, self)
 		
 		self.enemyStrategy = EnemyStrategy1("Enemy1", 1)
 		
@@ -487,6 +556,7 @@ class Application():
 		
 		pygame.mixer.music.stop()
 		pygame.mixer.music.load("resources/background" + str(r)+".mp3") 
+		pygame.mixer.music.set_volume(self.musicVolume/100)
 		pygame.mixer.music.play(-1)
 	
 	def setMenu(self):
@@ -524,28 +594,68 @@ class Application():
 			self.menuSpellBoxes.append(ImageTk.PhotoImage(Image.open("resources/spellBox.png")))
 			self.menuCanvas.create_image(x, 260, image = self.menuSpellBoxes[i], anchor = NW)
 			x += 110
+			
 		
-		self.startGamePhoto = Image.open("resources/startGameBox.png")
-		self.startGameImage = ImageTk.PhotoImage(self.startGamePhoto )
-		self.startGameButton = Button(self.menuCanvas, command = self.level1, image = self.startGameImage, bg = '#cc9e71', bd =  4,\
-		highlightcolor="brown", highlightbackground="brown", borderwidth=4, activebackground = "#cc9e71")
-		self.startGameButton.place(x = 125, y = 30, width = 250, height = 70)
+		self.menuScaler = Scale(self.menuCanvas, command = self.setMusicVolume, from_=100, to=0, bd = 1,  bg = self.darkBrown, highlightbackground = self.lightBrown, \
+		font = ("Purisa", 10, "bold"), fg = self.lightBrown, sliderlength = 50, troughcolor = self.lightBrown, activebackground = self.darkBrown)
+		self.menuScaler.place(x = 20, y = 20, width = 48, height = 150)
+		self.menuScaler.set(self.musicVolume)
 		
-		self.selectPlayerPhoto = Image.open("resources/playerBox.png")
-		self.selectPlayerImage = ImageTk.PhotoImage(self.selectPlayerPhoto )
-		self.menuCanvas.create_image(175, 130, image = self.selectPlayerImage, anchor = NW)
 		
+		self.menuSpeakerPhoto = Image.open("resources/speaker.jpg")
+		self.menuSpeakerImage = ImageTk.PhotoImage(self.menuSpeakerPhoto)
+		self.menuCanvas.create_image(20, 180, image = self.menuSpeakerImage, anchor = NW)	
+		
+		self.selectedMode = 0
+		self.menuModeImages = []
+		
+		self.menuModePhoto1 = Image.open("resources/modepve.png")
+		self.menuModePhoto1 = self.menuModePhoto1.resize((180, 60))
+		self.menuModeImages.append(ImageTk.PhotoImage(self.menuModePhoto1))
+		
+		self.menuModePhoto2 = Image.open("resources/modehve.png")
+		self.menuModePhoto2 = self.menuModePhoto2.resize((180, 60))
+		self.menuModeImages.append(ImageTk.PhotoImage(self.menuModePhoto2))
+		
+		self.numOfModes = len(self.menuModeImages)
+		
+		self.menuModeImage = self.menuCanvas.create_image(185, 20, image = self.menuModeImages[0], anchor = NW)
+
 		self.menuLeftPhoto = Image.open("resources/menuLeft.gif")
 		self.menuLeftImage = ImageTk.PhotoImage(self.menuLeftPhoto )
-		self.menuLeftButton = Button(self.menuCanvas, command = self.menuLeftClick, image = self.menuLeftImage, bg = '#cc9e71', bd =  4,\
-		highlightcolor="brown", highlightbackground="brown", borderwidth=4, activebackground = "#cc9e71")
-		self.menuLeftButton.place(x = 75, y = 130, width = 70, height = 70)
+		self.menuLeftButton1 = Button(self.menuCanvas, command = self.menuLeftModeClick, image = self.menuLeftImage, bg = self.lightBrown, bd =  4,\
+		highlightcolor="brown", highlightbackground="brown", borderwidth=4, activebackground = self.lightBrown)
+		self.menuLeftButton1.place(x = 105, y = 20, width = 60, height = 60)
 		
 		self.menuRightPhoto = Image.open("resources/menuRight.gif")
 		self.menuRightImage = ImageTk.PhotoImage(self.menuRightPhoto )
-		self.menuRightButton = Button(self.menuCanvas, command = self.menuRightClick, image = self.menuRightImage, bg = '#cc9e71', bd =  4,\
-		highlightcolor="brown", highlightbackground="brown", borderwidth=4, activebackground = "#cc9e71")
-		self.menuRightButton.place(x = 355, y = 130, width = 70, height = 70)
+		self.menuRightButton1 = Button(self.menuCanvas, command = self.menuRightModeClick, image = self.menuRightImage, bg = self.lightBrown, bd =  4,\
+		highlightcolor="brown", highlightbackground="brown", borderwidth=4, activebackground = self.lightBrown)
+		self.menuRightButton1.place(x = 385, y = 20, width = 60, height = 60)
+		
+		
+		
+		self.selectPlayerPhoto = Image.open("resources/playerBox.png")
+		self.selectPlayerImage = ImageTk.PhotoImage(self.selectPlayerPhoto )
+		self.menuCanvas.create_image(210, 95, image = self.selectPlayerImage, anchor = NW)
+		
+		self.menuLeftButton2 = Button(self.menuCanvas, command = self.menuLeftPlayerClick, image = self.menuLeftImage, bg = self.lightBrown, bd =  4,\
+		highlightcolor="brown", highlightbackground="brown", borderwidth=4, activebackground = self.lightBrown)
+		self.menuLeftButton2.place(x = 105, y = 95, width = 60, height = 60)
+
+		self.menuRightButton2 = Button(self.menuCanvas, command = self.menuRightPlayerClick, image = self.menuRightImage, bg = self.lightBrown, bd =  4,\
+		highlightcolor="brown", highlightbackground="brown", borderwidth=4, activebackground = self.lightBrown)
+		self.menuRightButton2.place(x = 385, y = 95, width = 60, height = 60)
+		
+		
+		
+		self.startGamePhoto = Image.open("resources/startGameBox.png")
+		self.startGameImage = ImageTk.PhotoImage(self.startGamePhoto )
+		self.startGameButton = Button(self.menuCanvas, command = self.level1, image = self.startGameImage, bg = self.lightBrown, bd =  4,\
+		highlightcolor="brown", highlightbackground="brown", borderwidth=4, activebackground = self.lightBrown)
+		self.startGameButton.place(x = 165, y = 170, width = 220, height = 60)
+		
+
 		
 		self.menuSpellPhotoSize = 60
 		self.menuSpellButtonsX = 55
@@ -599,7 +709,7 @@ class Application():
 			tmpmenuSpellButtons = []
 			for i in range (4):			
 				tmpmenuSpellButtons.append(Button(self.menuCanvas, image = self.menuSpellImages[k][i], bg = 'brown', bd =  0,\
-				highlightcolor="brown", highlightbackground="brown", borderwidth=0, activebackground = "#cc9e71"))
+				highlightcolor="brown", highlightbackground="brown", borderwidth=0, activebackground = self.lightBrown))
 				
 				xx += self.menuSpellButtonsX*2
 			self.menuSpellButtons.append(tmpmenuSpellButtons)
@@ -616,30 +726,29 @@ class Application():
 		self.menuCanvas.pack()
 		pygame.mixer.music.stop()
 		pygame.mixer.music.load("resources/mainMenu.mp3")
+		pygame.mixer.music.set_volume(self.musicVolume/100)
 		pygame.mixer.music.play(-1)
 		
-	
-	def menuRightClick(self):
+	def menuLeftPlayerClick(self):
 		for i in range (4):			
 			self.menuSpellButtons[self.selectedPlayer][i].place_forget()
 			
-		self.selectedPlayer = self.selectedPlayer + 1
-		if (self.selectedPlayer == self.numOfPlayers):
-			self.selectedPlayer = 0
-		
-		self.selectPlayer()
-		
-	def menuLeftClick(self):
-		for i in range (4):			
-			self.menuSpellButtons[self.selectedPlayer][i].place_forget()
-			
-		self.selectedPlayer = self.selectedPlayer - 1
+		self.selectedPlayer -= 1
 		if (self.selectedPlayer == -1):
 			self.selectedPlayer = self.numOfPlayers - 1
 			
 		self.selectPlayer()
-		
 	
+	def menuRightPlayerClick(self):
+		for i in range (4):			
+			self.menuSpellButtons[self.selectedPlayer][i].place_forget()
+			
+		self.selectedPlayer += 1
+		if (self.selectedPlayer == self.numOfPlayers):
+			self.selectedPlayer = 0
+		
+		self.selectPlayer()
+
 	def selectPlayer(self):
 		self.playerX = int(self.maxPlayerX + (1-self.menuPlayerImages[self.selectedPlayer].width()/self.maxPlayerWidth)*self.maxPlayerWidth/2)
 		self.playerY = int(self.maxPlayerY + (1-self.menuPlayerImages[self.selectedPlayer].height()/self.maxPlayerHeight)*self.maxPlayerHeight/2)
@@ -656,6 +765,29 @@ class Application():
 		
 		self.menuCanvas.itemconfig(self.menuCanvasDescr, text = self.playerDescrs[self.selectedPlayer])
 	
+	
+	def menuLeftModeClick(self):
+		self.selectedMode -= 1
+		if self.selectedMode == -1:
+			self.selectedMode = self.numOfModes - 1
+		
+		self.selectMode()
+	
+	def menuRightModeClick(self):
+		self.selectedMode += 1
+		if self.selectedMode == self.numOfModes:
+			self.selectedMode = 0
+		
+		self.selectMode()
+		
+	def selectMode(self):
+		self.menuCanvas.itemconfig(self.menuModeImage, image = self.menuModeImages[self.selectedMode])
+
+	def setMusicVolume(self, volume):
+		self.musicVolume = int(volume)
+		pygame.mixer.music.set_volume(self.musicVolume/100)
+		
+	
 	def hoveredSpell(self, e):
 		for i in range (4):
 			if e.widget == self.menuSpellButtons[self.selectedPlayer][i]:
@@ -665,6 +797,19 @@ class Application():
 	def unhoveredSpell(self, e):
 		self.menuCanvas.itemconfig(self.menuCanvasDescr, text = self.playerDescrs[self.selectedPlayer])
 			
+	def	hoverColor(self, e):
+		if self.playerSelected[self.side] == 0 and self.playerModes[self.side] == "human" and e.widget["state"]!="disabled": 
+			e.widget["bg"] = "yellow"
+			
+	def unhoverColor(self,e):
+		if self.playerSelected[self.side] == 0 and self.playerModes[self.side] == "human":
+			e.widget["bg"] = self.lightBrown
+	
+	def selectAction(self, e):
+		if e.widget["state"]!="disabled" and self.side == 0 and self.playerSelected[0] == 0 and self.playerModes[0] == "human":
+			self.playerActionIndex = self.spellCanvasButtons.index(e.widget)
+			self.playerSelected[0] = 1
+			self.run()
 	
 rootWidth = 806
 rootHeight = 449

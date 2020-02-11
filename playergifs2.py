@@ -92,7 +92,7 @@ class PlayerGif2:
 			
 			
 class PlayerWinnerGif2:
-	def __init__(self, parent, canvas, x, y):
+	def __init__(self, parent, canvas, x, y, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -104,6 +104,7 @@ class PlayerWinnerGif2:
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.sound = pygame.mixer.Sound("resources/playerwinner.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -162,6 +163,9 @@ class PlayerAttackGif2:
 		self.launchSound = pygame.mixer.Sound("resources/player2launch.wav")
 		self.hitSound = pygame.mixer.Sound("resources/player1hit.wav")
 		self.criticalHitSound = pygame.mixer.Sound("resources/criticalHit.wav")
+		self.launchSound.set_volume(self.app.musicVolume/100)
+		self.hitSound.set_volume(self.app.musicVolume/100)
+		self.criticalHitSound.set_volume(self.app.musicVolume/100)
 		
 		self.animate(0)
 		
@@ -217,7 +221,7 @@ class PlayerAttackGif2:
 		
 		
 class PlayerFlexGif2:
-	def __init__(self, parent, canvas, x, y):
+	def __init__(self, parent, canvas, x, y, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -229,6 +233,7 @@ class PlayerFlexGif2:
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.sound = pygame.mixer.Sound("resources/player2flex.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -254,7 +259,7 @@ class PlayerFlexGif2:
 
 
 class PlayerChargeGif2:
-	def __init__(self, parent, canvas, x, y):
+	def __init__(self, parent, canvas, x, y, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -266,6 +271,7 @@ class PlayerChargeGif2:
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.sound = pygame.mixer.Sound("resources/player2charge.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -291,7 +297,7 @@ class PlayerChargeGif2:
 		
 		
 class PlayerDrainGif2:
-	def __init__(self, parent, canvas, x, y, afterTime):
+	def __init__(self, parent, canvas, x, y, afterTime, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -303,6 +309,7 @@ class PlayerDrainGif2:
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.sound = pygame.mixer.Sound("resources/player2drain.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
@@ -328,7 +335,7 @@ class PlayerDrainGif2:
 
 
 class PlayerDodgeGif2:
-	def __init__(self, parent, canvas, x, y):
+	def __init__(self, parent, canvas, x, y, app):
 		self.parent = parent
 		self.canvas = canvas
 		
@@ -340,6 +347,7 @@ class PlayerDodgeGif2:
 		self.pausing = True
 		self.canvas.itemconfig(self.image, state="hidden")
 		self.sound = pygame.mixer.Sound("resources/player2dodge.wav")
+		self.sound.set_volume(app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
