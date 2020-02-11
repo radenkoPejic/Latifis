@@ -31,7 +31,7 @@ class PlayerStrategy1(PlayerStrategy):
 	spellDescrs = ["BurnAttack\nDamage: 60, Critical: 10%, Energy: 150, Cooldown: 0\nAdditional effect: 70% chance of adding BurnBuff to enemy's buff list if spell\nis not dodged",
 	"LongFullHeal\nHeal: 10% of max health, Energy: 300, Cooldown: 6, Duration: 4\nAdditional effect: Adds FullBuff to players' buff list",
 	"Charge\nBonus: 400, Energy: 0, Cooldown: 0",
-	"Stun, Duration: 3, Energy: 200, Cooldown: 7\nAdditional effect: Adds StunBuff to enemy's buff list if spell is not dodged"
+	"Stun\nDuration: 3, Energy: 200, Cooldown: 7\nAdditional effect: Adds StunBuff to enemy's buff list if spell is not dodged"
 	]
 	
 	def setPlayer(self, app):
@@ -115,7 +115,7 @@ class PlayerStrategy2(PlayerStrategy):
 		app.playerSpellGifs.append(PlayerAttackGif2(app.root, app.backgroundCanvas, 270, 303, app.afterTime, app, 0))
 		app.playerSpellGifs.append(PlayerFlexGif2(app.root, app.backgroundCanvas, 255, 360, app))
 		app.playerSpellGifs.append(PlayerChargeGif2(app.root, app.backgroundCanvas, 245, 350, app))
-		app.playerSpellGifs.append(PlayerDrainGif2(app.root,app.backgroundCanvas, 630, 330, app.afterTime, app))
+		app.playerSpellGifs.append(PlayerDrainGif2(app.root,app.backgroundCanvas, 630, 330, app.afterTime, app, 3))
 	
 	def setPlayerDodgeGif(self, app):
 		app.dodgeGifs.append(PlayerDodgeGif2(app.root, app.backgroundCanvas, 250, 350, app))

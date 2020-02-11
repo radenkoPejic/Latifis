@@ -5,10 +5,6 @@ import pygame
 
 	
 class PlayerGif2:
-	maxLimit = 21
-	midLimit = 1
-	enableLimit = 7
-	
 	def __init__(self, parent, canvas, x, y, afterTime, app):
 		self.parent = parent
 		self.canvas = canvas
@@ -16,6 +12,9 @@ class PlayerGif2:
 		self.afterTime = afterTime
 		self.playerSpellGifs = app.playerSpellGifs
 		self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/player2.gif"))]
+		self.maxLimit = len(self.sequence)
+		self.midLimit = 7
+		self.enableLimit = 10
 		self.playerText = app.playerText
 		self.enemyText = app.enemyText
 		self.dodgeGifs = app.dodgeGifs
@@ -24,7 +23,7 @@ class PlayerGif2:
 		self.app = app
 		
 		self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
-		self.limit = PlayerGif2.maxLimit
+		self.limit = self.maxLimit
 		self.after = afterTime//len(self.sequence) + 5
 		self.animating = True
 		self.pausing = True
@@ -34,16 +33,16 @@ class PlayerGif2:
 		if counter<self.limit:
 			self.canvas.itemconfig(self.image, image = self.sequence[counter])
 			
-		if counter == PlayerGif2.enableLimit: #pokretanje animacije i zvuka?
+		if counter == self.enableLimit: #pokretanje animacije i zvuka?
 			self.playerSpellGifs[0].enable()
 			
 		if not self.animating:
 			return
 		
-		if self.pausing or self.limit==counter==PlayerGif2.maxLimit: 
+		if self.pausing or self.limit==counter==self.midLimit: 
 			self.parent.after(self.after, lambda: self.animate(0))
 		else:
-			self.parent.after(self.after, lambda: self.animate((counter+1)%(len(self.sequence))))
+			self.parent.after(self.after, lambda: self.animate(counter+1))
 	
 	def stop(self):
 		self.animating = False
@@ -53,13 +52,18 @@ class PlayerGif2:
 	
 	def goOn(self):
 		self.pausing = False
+	
+	def wait(self):
+		self.limit = self.midLimit
+		self.after = (self.afterTime//len(self.sequence))*2-3
+		self.pausing = False
 		
 	def setSpell(self, spell):
 		
 		self.dodgeGifs[0].pause()
 		
-		self.limit = PlayerGif2.midLimit
-		self.after = (self.afterTime//len(self.sequence))*2
+		self.limit = self.midLimit
+		self.after = (self.afterTime//len(self.sequence))*2-4
 		
 
 		ispis = ""
@@ -68,7 +72,7 @@ class PlayerGif2:
 		self.canvas.itemconfig(self.criticalImages[0], state = "hidden")
 			
 		if isinstance(spell, AttackSpell):
-			self.limit = PlayerGif2.maxLimit
+			self.limit = self.maxLimit
 			self.after = self.afterTime//len(self.sequence)
 			
 			if not self.players[0].stunned and spell.dodged:
@@ -297,9 +301,12 @@ class PlayerChargeGif2:
 		
 		
 class PlayerDrainGif2:
-	def __init__(self, parent, canvas, x, y, afterTime, app):
+	def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex):
 		self.parent = parent
 		self.canvas = canvas
+			
+		self.app = app
+		self.spell = self.app.players[0].spells[spellIndex]
 		
 		self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/player2drain.gif"))]
 
@@ -307,19 +314,39 @@ class PlayerDrainGif2:
 		self.after = int(100*afterTime/1500)
 		self.animating = True
 		self.pausing = True
+		self.enabled = False
 		self.canvas.itemconfig(self.image, state="hidden")
-		self.sound = pygame.mixer.Sound("resources/player2drain.wav")
-		self.sound.set_volume(app.musicVolume/100)
+		self.attackSound = pygame.mixer.Sound("resources/player2drain.wav")
+		self.criticalHitSound = pygame.mixer.Sound("resources/criticalHit.wav")
+		self.attackSound.set_volume(self.app.musicVolume/100)
+		self.criticalHitSound.set_volume(self.app.musicVolume/100)
 		self.animate(0)
 		
 	def animate(self, counter):
-		self.canvas.itemconfig(self.image, image = self.sequence[counter])
 		if not self.animating:
 			return
 			
-		if not self.pausing:
-			self.parent.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
-		else: self.parent.after(self.after, lambda: self.animate(0))
+		if self.pausing:
+			self.parent.after(self.after, lambda: self.animate(0))
+			
+		elif not self.pausing:
+			self.canvas.itemconfig(self.image, image = self.sequence[counter])
+
+			if counter+1<len(self.sequence):
+				self.parent.after(self.after, lambda: self.animate(counter+1))
+			else:
+				self.canvas.itemconfig(self.image, state="hidden")
+				self.pausing = True
+				
+				if not self.app.players[0].stunned and not self.spell.dodged: #zaustavljanje i prikazivanje posledica udara
+					if self.spell.criticalHit:
+						self.criticalHitSound.play()
+						self.canvas.itemconfig(self.app.criticalImages[1], state = "normal")
+					healthText = str(int(-self.spell.damageDone))
+					self.canvas.itemconfig(self.app.enemyText, text = healthText, fill = self.spell.color)
+						
+				self.parent.after(self.after, lambda: self.animate(0))
+		
 	
 	def stop(self):
 		self.animating = False
@@ -331,7 +358,10 @@ class PlayerDrainGif2:
 	def goOn(self):
 		self.pausing = False
 		self.canvas.itemconfig(self.image, state="normal")
-		self.sound.play()
+		self.attackSound.play()
+		
+	def enable(self):
+		self.enabled = True
 
 
 class PlayerDodgeGif2:

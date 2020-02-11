@@ -4,11 +4,6 @@ from Spell import *
 import pygame
 
 class PlayerGif1:
-	maxLimit = 88
-	midLimit = 30
-	launchLimit = 31
-	enableLimit = 45
-
 	def __init__(self, parent, canvas, x, y, afterTime, app):
 		self.parent = parent
 		self.canvas = canvas
@@ -16,6 +11,10 @@ class PlayerGif1:
 		self.afterTime = afterTime
 		self.playerSpellGifs = app.playerSpellGifs
 		self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/player1.gif"))]
+		self.maxLimit = len(self.sequence)
+		self.midLimit = 30
+		self.launchLimit = 31
+		self.enableLimit = 45
 		self.playerText = app.playerText
 		self.enemyText = app.enemyText
 		self.dodgeGifs = app.dodgeGifs
@@ -24,7 +23,7 @@ class PlayerGif1:
 		self.app = app
 		
 		self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
-		self.limit = PlayerGif1.maxLimit
+		self.limit = self.maxLimit
 		self.after = afterTime//len(self.sequence)
 		self.animating = True
 		self.pausing = True
@@ -34,15 +33,15 @@ class PlayerGif1:
 		if counter<self.limit:
 			self.canvas.itemconfig(self.image, image = self.sequence[counter])
 			
-		if counter == PlayerGif1.launchLimit: #pokretanje zvuka
+		if counter == self.launchLimit: #pokretanje zvuka
 			self.playerSpellGifs[0].launch()	
-		elif counter == PlayerGif1.enableLimit: #pokretanje gifa
+		elif counter == self.enableLimit: #pokretanje gifa
 			self.playerSpellGifs[0].enable()
 			
 		if not self.animating:
 			return
 		
-		if self.pausing or self.limit==counter==PlayerGif1.midLimit: 
+		if self.pausing or self.limit==counter==self.midLimit: 
 			self.parent.after(self.after, lambda: self.animate(0))
 		else:
 			self.parent.after(self.after, lambda: self.animate(counter+1))
@@ -55,13 +54,18 @@ class PlayerGif1:
 	
 	def goOn(self):
 		self.pausing = False
+	
+	def wait(self):
+		self.limit = self.midLimit
+		self.after = (self.afterTime//len(self.sequence))*4
+		self.pausing = False
 		
 	def setSpell(self, spell):
 		
 		self.dodgeGifs[0].pause()
 		
-		self.limit = PlayerGif1.midLimit
-		self.after = (self.afterTime//len(self.sequence))*2
+		self.limit = self.midLimit
+		self.after = (self.afterTime//len(self.sequence))*3
 		
 
 		ispis = ""
@@ -70,7 +74,7 @@ class PlayerGif1:
 		self.canvas.itemconfig(self.criticalImages[0], state = "hidden")
 			
 		if isinstance(spell, AttackSpell):
-			self.limit = PlayerGif1.maxLimit
+			self.limit = self.maxLimit
 			self.after = self.afterTime//len(self.sequence)
 			
 			if not self.players[0].stunned and spell.dodged:

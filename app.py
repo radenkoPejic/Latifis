@@ -182,7 +182,7 @@ class Application():
 			side = self.potez % 2
 			
 			if self.players[0].health < 150:
-				self.pulse.play()
+				self.pulseSound.play()
 			
 			#prelazni deo izmedju strana
 			if self.playerSelected[side]==0:
@@ -209,6 +209,11 @@ class Application():
 				#ako je igrac kompjuterski nema cekanja na odabir spella klikom misa
 				if self.playerModes[side] == "computer":
 					self.playerSelected[side] = 1
+				#ako je igrac covek cupka u mestu
+				else:
+					if side == 0:
+						self.playerGif.wait()
+					
 					
 				#drugog igraca resetujemo
 				self.playerSelected[1-side] = 0
@@ -242,6 +247,7 @@ class Application():
 					self.root.after(self.afterTime+self.switchTime, self.run)
 					return
 			
+			
 			#promenjena strana nakon prelaznog dela
 			self.side = side
 		
@@ -251,20 +257,18 @@ class Application():
 				self.potez += 1
 				
 				if self.side == 0:
+					#odabir poteza za kompjuterskog igraca
 					if self.playerModes[self.side]=="computer":
 						self.playerActionIndex = self.players[0].get_next_action(self.players[0].prev_state)
+					#pauziranje zbog waita igraca
+					else:
+						self.playerGif.pause()	
 						
+					#odigravanje poteza	igraca
 					self.players[0].take_action(self.playerActionIndex, self.players[1])
 					action = self.players[0].spells[self.playerActionIndex]
-				
-				if self.side == 1:
-					self.enemyActionIndex = self.players[1].stepFuzzy(self.players[0])
-					action = self.players[1].spells[self.enemyActionIndex]
-
-				
-			
-				#apdejt poteza
-				if (self.side == 0):
+					
+					#apdejt poteza
 					self.turnCanvas.itemconfig(self.turnText, text = "Player's turn " + str(turn))
 					self.enemyGif.pause()
 					self.enemySpellGifs[self.enemyActionIndex].pause()
@@ -274,6 +278,11 @@ class Application():
 						self.playerSpellGifs[self.playerActionIndex].goOn()
 						
 				else:
+					#odigravanje poteza protivnika
+					self.enemyActionIndex = self.players[1].stepFuzzy(self.players[0])
+					action = self.players[1].spells[self.enemyActionIndex]
+					
+					#apdejt poteza
 					self.turnCanvas.itemconfig(self.turnText, text = "Enemy's turn " + str(turn))
 					self.playerGif.pause()
 					self.playerSpellGifs[self.playerActionIndex].pause()
@@ -282,7 +291,6 @@ class Application():
 					if not self.players[1].stunned:
 						self.enemySpellGifs[self.enemyActionIndex].goOn()
 					
-				
 				
 				#oznacavanje pogodjene kucice
 				if (self.side==0):
@@ -295,6 +303,7 @@ class Application():
 				
 				#prelazak na sledeci potez
 				self.root.after(self.afterTime+self.switchTime, self.run)
+				
 			
 		elif self.game.winner == "Malis":
 			self.turnCanvas.itemconfig(self.turnText, text = "Player won")
@@ -419,7 +428,7 @@ class Application():
 			self.enemyStatusCanvas.itemconfig(self.enemyBuffImages[len(self.enemyBuffImages)-1], state="hidden")
 			self.enemyBuffTexts.append(self.enemyStatusCanvas.create_text(x, 86, anchor = NE, text = "", font = ("Purisa", 8), fill = "white"))
 			
-		self.pulse = pygame.mixer.Sound("resources/pulse.wav")
+		self.pulseSound = pygame.mixer.Sound("resources/pulse.wav")
 	
 		self.menuCanvas = Canvas(self.backgroundCanvas, bd=0, highlightthickness=0, relief='ridge', width = self.rootWidth, height = self.rootHeight)
 		self.endGameCanvas = Canvas(self.backgroundCanvas, bd=0, highlightthickness=0, relief='ridge', width = self.rootWidth, height = self.rootHeight)
@@ -728,7 +737,13 @@ class Application():
 		pygame.mixer.music.load("resources/mainMenu.mp3")
 		pygame.mixer.music.set_volume(self.musicVolume/100)
 		pygame.mixer.music.play(-1)
-		
+	
+	def setMusicVolume(self, volume):
+		self.musicVolume = int(volume)
+		pygame.mixer.music.set_volume(self.musicVolume/100)
+		self.pulseSound.set_volume(self.musicVolume/100)
+		self.endGameSound.set_volume(self.musicVolume/100)
+	
 	def menuLeftPlayerClick(self):
 		for i in range (4):			
 			self.menuSpellButtons[self.selectedPlayer][i].place_forget()
@@ -782,11 +797,6 @@ class Application():
 		
 	def selectMode(self):
 		self.menuCanvas.itemconfig(self.menuModeImage, image = self.menuModeImages[self.selectedMode])
-
-	def setMusicVolume(self, volume):
-		self.musicVolume = int(volume)
-		pygame.mixer.music.set_volume(self.musicVolume/100)
-		
 	
 	def hoveredSpell(self, e):
 		for i in range (4):
