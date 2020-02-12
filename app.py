@@ -534,7 +534,7 @@ class Application():
 			self.playerStrategy = PlayerStrategy1("Novi11100", 0.05)
 			self.playerWinnerGif = PlayerWinnerGif1(root, self.endGameCanvas, 0, 0, self)
 		else:
-			self.playerStrategy = PlayerStrategy2("Novi11100", 0.05)
+			self.playerStrategy = PlayerStrategy2("dm3vsdm21000vse11000", 0.05)
 			self.playerWinnerGif = PlayerWinnerGif2(root, self.endGameCanvas, 0, 0, self)
 		
 		self.enemyStrategy = EnemyStrategy1("Enemy1", 1)
