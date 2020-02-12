@@ -77,6 +77,7 @@ class Application():
 		
 		self.spellImages = []
 		self.spells = []
+		self.spellHoverLabels = []
 		
 		self.looserImage = ImageTk.PhotoImage(Image.open("resources/looser.jpg"))
 		self.buffImage = ImageTk.PhotoImage(Image.open("resources/transparent.png"))
@@ -460,6 +461,7 @@ class Application():
 		
 		self.spells = []
 		self.spellCanvasButtons = []
+		
 		self.criticalImages = []
 		
 		self.spellImages = []
@@ -473,6 +475,8 @@ class Application():
 		self.dodgeGifs = []
 		self.playerSpellGifs = []
 		self.enemySpellGifs = []
+		self.spellHoverLabels = []
+		self.spellHoverLabelsPlaces = []
 
 		self.players = []
 		
@@ -492,6 +496,9 @@ class Application():
 			self.spellCanvasButtons[i].bind("<Button-1>", self.selectAction)
 			if self.playerModes[0]=="human":
 				self.spellCanvasButtons[i]["activebackground"] = "yellow"
+		
+			self.spellHoverLabels.append(Label(self.backgroundCanvas, text = self.spells[i].description(), anchor = SW, justify = LEFT, fg = "white", bg = self.lightBrown))
+			self.spellHoverLabelsPlaces.append(X + 230)
 			i+=1
 		
 		
@@ -504,8 +511,7 @@ class Application():
 		
 		self.playerStrategy.setPlayerSpellGifs(self)
 		self.enemyStrategy.setPlayerSpellGifs(self)
-		
-		
+			
 		
 		self.game = Igra(self.players[0], self.players[1])
 		self.players[1].initFuzzy(self.players[0])
@@ -810,10 +816,16 @@ class Application():
 	def	hoverColor(self, e):
 		if self.playerSelected[self.side] == 0 and self.playerModes[self.side] == "human" and e.widget["state"]!="disabled": 
 			e.widget["bg"] = "yellow"
+		for i in range (len(self.spellHoverLabels)):
+			if e.widget == self.spellCanvasButtons[i]:
+				self.spellHoverLabels[i].place(x = self.spellHoverLabelsPlaces[i], y = 360, anchor = SW)
 			
 	def unhoverColor(self,e):
 		if self.playerSelected[self.side] == 0 and self.playerModes[self.side] == "human":
 			e.widget["bg"] = self.lightBrown
+		for i in range (len(self.spellHoverLabels)):
+			if e.widget == self.spellCanvasButtons[i]:
+				self.spellHoverLabels[i].place_forget()
 	
 	def selectAction(self, e):
 		if e.widget["state"]!="disabled" and self.side == 0 and self.playerSelected[0] == 0 and self.playerModes[0] == "human":
