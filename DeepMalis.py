@@ -1,16 +1,9 @@
 import random
-import csv
 import os
 from pathlib import Path
-from tabulate import tabulate
-from abc import abstractmethod
 import keras.layers as Kl
 import keras.models as Km
-import numpy as np
-import matplotlib.pyplot as plt
-from Agent import Player,Agent
 from Player import Malis
-from Enemy import Enemy
 import Spell 
 import numpy as np
 
@@ -74,7 +67,7 @@ class DeepMalis(Malis):
         s = 'model_values' + self.tag + '.h5'
         model_file = Path(s)
         if model_file.is_file():
-            model = Km.load_model(s)
+            model = Km.load_model(s, compile = False)
             print('load model: ' + s)
         else:
             print('new model')

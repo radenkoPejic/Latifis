@@ -1,19 +1,5 @@
-import random
-import csv
-import os
-from pathlib import Path
-from tabulate import tabulate
-from abc import abstractmethod
-import keras.layers as Kl
-import keras.models as Km
-import numpy as np
-import matplotlib.pyplot as plt
-from Agent import Player,Agent
-from DeepAgent import DeepAgent
-from Player import Malis
 from DeepMalis import *
 from Enemy import *
-import copy
 
 class Igra():
     def __init__(self, player, enemy):
@@ -179,4 +165,4 @@ def check_player():
     #game.play_game()
 
 ####Za pokretanje odkomentarisati ovo ispod
-check_player()
+#check_player()
