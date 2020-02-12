@@ -205,6 +205,7 @@ class Application():
 						self.game.doBuffsEnemy()
 						self.showEnemyBuffs()
 
+				self.backgroundCanvas.itemconfig(self.criticalImages[side], state = "hidden")
 				self.dodgeGifs[side].pause()
 				
 				#ako je igrac kompjuterski nema cekanja na odabir spella klikom misa
