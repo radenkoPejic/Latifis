@@ -76,11 +76,12 @@ class Application():
         self.enemyActionIndex = None
         
         self.spellImages = []
-        self.spells = []
         self.spellHoverLabels = []
         
         self.looserImage = ImageTk.PhotoImage(Image.open("resources/looser.jpg"))
         self.buffImage = ImageTk.PhotoImage(Image.open("resources/transparent.png"))
+        
+        #self.criticalPhoto = self.criticalPhoto.transpose(Image.FLIP_LEFT_RIGHT)  
         self.criticalImage = ImageTk.PhotoImage(Image.open("resources/criticalhit.png"))
         self.criticalImages = []
 
@@ -164,17 +165,18 @@ class Application():
         self.playerStatusCanvas.itemconfig(self.playerEnergyText, text = "Energy "+str(int(self.players[0].energy)))
         
         self.enemyHealthBar["value"] = 100*self.players[1].health/self.players[1].max_health
-        self.enemyEnergyBar["value"] = 100
+        if self.players[1].max_energy == 20000:
+            self.enemyEnergyBar["value"] = 100
+        else:
+            self.enemyEnergyBar["value"] = 100*self.players[1].energy/self.players[1].max_energy
         self.enemyHealthBar.update()
         self.enemyEnergyBar.update()
         self.enemyStatusCanvas.itemconfig(self.enemyHealthText, text = "Health "+str(int(self.players[1].health)))
-        
+        if self.players[1].max_energy != 20000:
+            self.enemyStatusCanvas.itemconfig(self.enemyEnergyText, text = "Energy "+str(int(self.players[1].energy)))
+           
 
     def run(self):
-        self.playerEnergyBar["maximum"] = 100
-        self.playerHealthBar["maximum"] = 100
-        self.enemyHealthBar["maximum"] = 100
-        self.enemyEnergyBar["maximum"] = 100
         
         self.updateStatus()
         
@@ -191,8 +193,7 @@ class Application():
                 if side == 0:
                     self.turnCanvas.itemconfig(self.turnText, text = "Player's turn " + str(turn))
                     self.enemyGif.pause()
-                    self.enemySpellGifs[self.enemyActionIndex].pause()
-                    self.backgroundCanvas.itemconfig(self.playerText, text = "")
+                    self.enemySpellGifs[self.playerActionIndex].pause()
                     self.game.doBuffsPlayer()
                     self.showEnemyBuffs()  
                     self.showPlayerBuffs()
@@ -201,17 +202,18 @@ class Application():
                     self.turnCanvas.itemconfig(self.turnText, text = "Enemy's turn " + str(turn))
                     self.playerGif.pause()
                     self.playerSpellGifs[self.playerActionIndex].pause()
-                    self.backgroundCanvas.itemconfig(self.enemyText, text = "")
                     self.game.doBuffsEnemy()
                     self.showPlayerBuffs()
                     self.showEnemyBuffs()    
                     
                 
+                self.backgroundCanvas.itemconfig(self.playerText, text = "")
+                self.backgroundCanvas.itemconfig(self.enemyText, text = "")
                 self.backgroundCanvas.itemconfig(self.criticalImages[side], state = "hidden")
                 self.dodgeGifs[side].pause()
                 
                 #ako je igrac kompjuterski nema cekanja na odabir spella klikom misa
-                if self.playerModes[side] == "computer":
+                if self.playerModes[side] != "human":
                     self.playerSelected[side] = 1
                 #ako je igrac covek cupka u mestu
                 else:
@@ -270,44 +272,46 @@ class Application():
             if self.playerSelected[self.side]==1:
                 self.potez += 1
                 
-                if self.side == 0:
-                    #odabir poteza za kompjuterskog igraca
-                    if self.playerModes[self.side]=="computer":
-                        self.playerActionIndex = self.players[0].get_next_action(self.players[0].prev_state)
-                    #pauziranje zbog waita igraca
-                    else:
-                        self.playerGif.pause()  
-                        
-                    #odigravanje poteza igraca
-                    self.players[0].take_action(self.playerActionIndex, self.players[1])
-                    action = self.players[0].spells[self.playerActionIndex]
-                    
-                    #apdejt poteza
+                ##ubaciti u playerstrategies
+                action = None
+                #odigravanje poteza za playera
+                if self.playerModes[self.side]=="player":
+                    self.playerActionIndex = self.players[self.side].get_next_action(self.players[self.side].prev_state)
+                    self.players[self.side].take_action(self.playerActionIndex, self.players[1-self.side])
+                    action = self.players[self.side].spells[self.playerActionIndex]
+                #odigravanje poteza za humana
+                elif self.playerModes[self.side]=="human":
+                    self.playerGif.pause()  
+                    self.players[self.side].take_action(self.playerActionIndex, self.players[1-self.side])
+                    action = self.players[self.side].spells[self.playerActionIndex]
+                #odigravanje poteza za enemya
+                elif self.playerModes[self.side]=="enemy":
+                    self.playerActionIndex = self.players[self.side].stepFuzzy(self.players[1-self.side])
+                    action = self.players[self.side].spells[self.playerActionIndex]
+                
+                
+                #apdejt poteza
+                if self.side == 0:  
                     self.turnCanvas.itemconfig(self.turnText, text = "Player's turn " + str(turn))
                     self.enemyGif.pause()
-                    self.enemySpellGifs[self.enemyActionIndex].pause()
+                    self.enemySpellGifs[self.playerActionIndex].pause()
                     self.playerGif.setSpell(action)
                     self.playerGif.goOn()
                     if not self.players[0].stunned:
                         self.playerSpellGifs[self.playerActionIndex].goOn()
                     
                 else:
-                    #odigravanje poteza protivnika
-                    self.enemyActionIndex = self.players[1].stepFuzzy(self.players[0])
-                    action = self.players[1].spells[self.enemyActionIndex]
-                    
-                    #apdejt poteza
                     self.turnCanvas.itemconfig(self.turnText, text = "Enemy's turn " + str(turn))
                     self.playerGif.pause()
                     self.playerSpellGifs[self.playerActionIndex].pause()
                     self.enemyGif.setSpell(action)
                     self.enemyGif.goOn()
                     if not self.players[1].stunned:
-                        self.enemySpellGifs[self.enemyActionIndex].goOn() 
+                        self.enemySpellGifs[self.playerActionIndex].goOn() 
                 
                 
                 #oznacavanje pogodjene kucice
-                if (self.side==0):
+                if self.side==0:
                     self.spellCanvasButtons[self.playerActionIndex]["state"] = "normal"
                     self.spellCanvasButtons[self.playerActionIndex]["text"] = ""
                     self.spellCanvasButtons[self.playerActionIndex]["bg"] = "yellow"
@@ -494,9 +498,13 @@ class Application():
         
         #modovi
         if self.selectedMode == 0:
-            self.playerModes = ["computer", "computer"]
+            self.playerModes = ["player", "enemy"]
         elif self.selectedMode == 1:
-            self.playerModes = ["human", "computer"]
+            self.playerModes = ["human", "enemy"]
+        elif self.selectedMode == 2:
+            self.playerModes = ["player", "player"]
+        elif self.selectedMode == 3:
+            self.playerModes = ["human", "player"]
         
         self.playerSelected = [0, 0]
     
@@ -505,8 +513,10 @@ class Application():
         self.selectEnvironment()
         self.backgroundCanvas.create_image(0, 0, image = self.backgroundImage, anchor = NW)
         
-        self.spells = []
-        
+        self.playerEnergyBar["maximum"] = 100
+        self.playerHealthBar["maximum"] = 100
+        self.enemyHealthBar["maximum"] = 100
+        self.enemyEnergyBar["maximum"] = 100
         
         self.criticalImages = []
         
@@ -537,7 +547,7 @@ class Application():
             self.spellCanvasButtons[i]["image"] = self.spellImages[i]
             if self.playerModes[0]=="human":
                 self.spellCanvasButtons[i]["activebackground"] = "yellow"
-            self.spellHoverLabels[i]["text"] = self.spells[i].description()
+            self.spellHoverLabels[i]["text"] = self.players[0].spells[i].description()
         
         
         
@@ -552,7 +562,8 @@ class Application():
             
         
         self.game = Igra(self.players[0], self.players[1])
-        self.players[1].initFuzzy(self.players[0])
+        if self.playerModes[1] == "enemy":
+            self.players[1].initFuzzy(self.players[0])
         
         #dodavanje environment buffova igracima
         self.playerStrategy.setEnvironmentBuff(self.envTags[self.env-1], self.players[0])
@@ -560,7 +571,7 @@ class Application():
         
         self.run()
         
-    def level1(self):
+    def level11(self):
         self.menuCanvas.pack_forget()
         self.playerHealth = self.playerStartHealth = 1000
         self.playerEnergy = self.playerStartEnergy = 1000
@@ -591,10 +602,29 @@ class Application():
         self.root.after(self.afterTime*3, self.playerWinnerGif.pause)
         self.root.after(self.afterTime*3, self.startLevel)
     
-    def backToMenu(self):
-        self.root.after(self.afterTime*3, self.hideLoser)
-        self.root.after(self.afterTime*3, self.playerWinnerGif.pause)
-        self.root.after(self.afterTime*3, self.mainMenu)
+    def level1(self):
+        self.menuCanvas.pack_forget()
+        self.playerHealth = self.playerStartHealth = 1000
+        self.playerEnergy = self.playerStartEnergy = 1000
+        self.enemyHealth = self.enemyStartHealth = 1000
+        self.enemyEnergy = self.enemyStartEnergy = 1000
+        
+        if (self.selectedPlayer == 0):
+            self.playerStrategy = PlayerStrategy1("Novi11100", 0.05)
+            self.playerWinnerGif = PlayerWinnerGif1(root, self.endGameCanvas, 0, 0, self)
+        else:
+            self.playerStrategy = PlayerStrategy2("dm3vsdm21000vse11000", 0.05)
+            self.playerWinnerGif = PlayerWinnerGif2(root, self.endGameCanvas, 0, 0, self)
+        
+        if random.random()<0.5:
+            self.enemyStrategy = EnemyStrategy3("Novi11100", 0.05)
+        else:
+            self.enemyStrategy = EnemyStrategy4("dm3vsdm21000vse11000", 0.05)
+        
+        self.selectedMode += 2
+        self.level = 3
+        self.startLevel()
+        
         
     def selectEnvironment(self):
         while True:
@@ -611,6 +641,15 @@ class Application():
         pygame.mixer.music.load("resources/background" + str(r)+".mp3") 
         pygame.mixer.music.set_volume(self.musicVolume/100)
         pygame.mixer.music.play(-1)
+    
+    
+    def backToMenu(self):
+        #obrisati
+        self.selectedMode = 0 
+        self.root.after(self.afterTime*3, self.hideLoser)
+        self.root.after(self.afterTime*3, self.playerWinnerGif.pause)
+        self.root.after(self.afterTime*3, self.mainMenu)
+
     
     def setMenu(self):
         self.menuCanvas.pack()

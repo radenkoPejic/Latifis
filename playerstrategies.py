@@ -55,7 +55,7 @@ class PlayerStrategy1(PlayerStrategy):
         
     def setPlayerSpells(self, app):
     
-        app.spells = app.players[0].spells
+        #app.spells = app.players[0].spells
         
         self.attackPhoto0 = Image.open("resources/p1attack0.jpg")
         self.attackPhoto0 = self.attackPhoto0.resize((50, 50))
@@ -105,7 +105,6 @@ class PlayerStrategy2(PlayerStrategy):
     def setPlayerTexts(self, app):
         app.playerText = app.backgroundCanvas.create_text(183, 194, anchor = NW, font = ("Purisa", 20, "bold"), text = "")
         app.criticalImages.append(app.backgroundCanvas.create_image(133, 132, image = app.criticalImage, anchor = NW, state = "hidden"))
-
     
     def setPlayerGif(self, app):
         app.playerGif = PlayerGif2(app.root, app.backgroundCanvas, 240, 350, app.afterTime, app)
@@ -122,7 +121,7 @@ class PlayerStrategy2(PlayerStrategy):
         
     def setPlayerSpells(self, app):
     
-        app.spells = app.players[0].spells
+        #app.spells = app.players[0].spells
         
         self.attackPhoto0 = Image.open("resources/p2attack0.jpg")
         self.attackPhoto0 = self.attackPhoto0.resize((50, 50))
@@ -228,3 +227,92 @@ class EnemyStrategy2(PlayerStrategy):
         for gif in app.enemySpellGifs:
             gif.stop()
         app.dodgeGifs[1].stop()
+
+class EnemyStrategy3(PlayerStrategy):
+    
+    def setPlayer(self, app):
+        app.players.append(DeepMalis2(app.enemyStartHealth,50,app.enemyStartEnergy, self.tag, self.explorationFactor))
+        
+    def setPlayerTexts(self, app):
+        #app.enemyText = app.backgroundCanvas.create_text(420, 194, anchor = NW, font = ("Purisa", 20, "bold"), text = "")
+        #app.criticalImages.append(app.backgroundCanvas.create_image(450, 132, image = app.criticalImage, anchor = NW, state = "hidden"))
+        
+        
+        '''app.backgroundCanvas.create_text(app.rootWidth - 182, 193, anchor = NE, font = ("Purisa", 20, "bold"), text = "56", fill = "black")
+        app.backgroundCanvas.create_text(app.rootWidth - 182, 195, anchor = NE, font = ("Purisa", 20, "bold"), text = "56", fill = "black")
+        app.backgroundCanvas.create_text(app.rootWidth - 184, 193, anchor = NE, font = ("Purisa", 20, "bold"), text = "56", fill = "black")
+        app.backgroundCanvas.create_text(app.rootWidth - 184, 195, anchor = NE, font = ("Purisa", 20, "bold"), text = "56", fill = "black")
+'''     
+        #app.backgroundCanvas.create_rectangle(app.rootWidth - 233, 194, app.rootWidth - 183, 244, fill = "black" )
+       
+        app.enemyText = app.backgroundCanvas.create_text(app.rootWidth - 183, 194, anchor = NE, font = ("Purisa", 20, "bold"), text = "")
+        app.criticalImages.append(app.backgroundCanvas.create_image(app.rootWidth - 133, 132, image = app.criticalImage, anchor = NE, state = "hidden"))
+
+        
+    def setPlayerGif(self, app):
+        app.enemyGif = PlayerGif1(app.root, app.backgroundCanvas, 240, 320, app.afterTime, app, 1)#PlayerGif1(app.root, app.backgroundCanvas, 680, 320, app.afterTime, app, 1)
+        
+    def setPlayerSpellGifs(self, app):
+        '''app.enemySpellGifs.append(PlayerAttackGif1(app.root, app.backgroundCanvas, 680, 303, app.afterTime, app, 0, 1))
+        app.enemySpellGifs.append(PlayerHealGif1(app.root, app.backgroundCanvas, 680, 330, app, 1))
+        app.enemySpellGifs.append(PlayerChargeGif1(app.root, app.backgroundCanvas, 680, 290, app, 1))
+        app.enemySpellGifs.append(PlayerStunGif1(app.root,app.backgroundCanvas, 680, 380, app.afterTime, app, 1))'''
+        
+        app.enemySpellGifs.append(PlayerAttackGif1(app.root, app.backgroundCanvas, 270, 303, app.afterTime, app, 0, 1))
+        app.enemySpellGifs.append(PlayerHealGif1(app.root, app.backgroundCanvas, 235, 330, app, 1))
+        app.enemySpellGifs.append(PlayerChargeGif1(app.root, app.backgroundCanvas, 145, 290, app, 1))
+        app.enemySpellGifs.append(PlayerStunGif1(app.root,app.backgroundCanvas, 620, 380, app.afterTime, app, 1))
+    
+    def setPlayerDodgeGif(self, app):
+        #app.dodgeGifs.append(PlayerDodgeGif1(app.root, app.backgroundCanvas, 680, 350, app, 1))       
+        app.dodgeGifs.append(PlayerDodgeGif1(app.root, app.backgroundCanvas, 255, 350, app, 1))
+        
+    def setEnvironmentBuff(self, tag, player):
+        if (tag == "lava"):
+            player.buffs.append(LavaPlus())
+        if (tag == "desert"):
+            player.buffs.append(DesertPlus())
+        elif (tag == "ice"):
+            player.buffs.append(IceMinus())
+        elif (tag == "forest"):
+            player.buffs.append(ForestMinus())
+    
+    def stop(self, app):
+        app.enemyGif.stop()
+        for gif in app.enemySpellGifs:
+            gif.stop()
+        app.dodgeGifs[1].stop()
+
+class EnemyStrategy4(PlayerStrategy):
+    def setPlayer(self, app):
+        app.players.append(DeepMalis3(app.playerStartHealth,50,app.playerStartEnergy, self.tag, self.explorationFactor))
+        
+    def setPlayerTexts(self, app):
+        app.enemyText = app.backgroundCanvas.create_text(app.rootWidth - 183, 194, anchor = NE, font = ("Purisa", 20, "bold"), text = "")
+        app.criticalImages.append(app.backgroundCanvas.create_image(app.rootWidth - 133, 132, image = app.criticalImage, anchor = NE, state = "hidden"))
+    
+    def setPlayerGif(self, app):
+        app.enemyGif = PlayerGif2(app.root, app.backgroundCanvas, 240, 350, app.afterTime, app, 1)
+             
+    def setPlayerSpellGifs(self, app):
+        app.enemySpellGifs.append(PlayerAttackGif2(app.root, app.backgroundCanvas, 270, 303, app.afterTime, app, len(app.enemySpellGifs), 1))
+        app.enemySpellGifs.append(PlayerFlexGif2(app.root, app.backgroundCanvas, 255, 360, app, 1))
+        app.enemySpellGifs.append(PlayerChargeGif2(app.root, app.backgroundCanvas, 245, 350, app, 1))
+        app.enemySpellGifs.append(PlayerDrainGif2(app.root,app.backgroundCanvas, 630, 330, app.afterTime, app, len(app.enemySpellGifs), 1))
+    
+    def setPlayerDodgeGif(self, app):
+        app.dodgeGifs.append(PlayerDodgeGif2(app.root, app.backgroundCanvas, 250, 350, app, 1))
+        
+    
+    def setEnvironmentBuff(self, tag, player):
+        if (tag == "forest"):
+            player.buffs.append(ForestPlus())
+        elif (tag == "lava"):
+            player.buffs.append(LavaMinus())
+    
+    def stop(self, app):
+        app.enemyGif.stop()
+        for gif in app.enemySpellGifs:
+            gif.stop()
+        app.dodgeGifs[1].stop()
+      

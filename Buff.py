@@ -328,9 +328,10 @@ class ForestMinus(EnvironmentBuff):
         self.photo = self.photo.resize((self.buffSize, self.buffSize))
         self.image = ImageTk.PhotoImage(self.photo)
     def castB(self,c1,c2=None):
-        if(random.random()<0.03):
+        #if(random.random()<0.03):
+        if abs(c1.health/c1.max_health - c2.health/c2.max_health)<0.015:
             addOrReplaceBuff(c1, StunBuff(1))
     def description(self):
-        return self.__class__.__name__ + "\n3% chance of adding StunBuff to other player"       
+        return self.__class__.__name__ + "\n3% chance of adding StunBuff to itself"       
 
         

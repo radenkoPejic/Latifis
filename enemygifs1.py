@@ -23,6 +23,8 @@ class EnemyGif1:
         self.slowAfter = 105
         self.animating = True
         self.pausing = True
+        self.size = 3
+        self.hitX = 510
         self.animate(0)
         
     def animate(self, counter):

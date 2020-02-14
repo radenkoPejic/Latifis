@@ -25,6 +25,8 @@ class EnemyGif2:
         self.pausing = True
         self.criticalHitSound = pygame.mixer.Sound("resources/criticalHit.wav")
         self.criticalHitSound.set_volume(app.musicVolume/100)
+        self.size = 3
+        self.hitX = 510
         self.animate(0)
         
     def animate(self, counter):

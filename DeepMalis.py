@@ -103,6 +103,8 @@ class DeepMalis2(DeepMalis):
         self.spells.append(Spell.Long_FullHeal(6,300,10,4)) #promena
         self.spells.append(Spell.Charge(0,0,400))
         self.spells.append(Spell.Stun(7,200,3))
+
+
         
 class DeepMalis3(DeepMalis):
 

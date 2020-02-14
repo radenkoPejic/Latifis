@@ -4,29 +4,43 @@ from Spell import *
 import pygame
 
 class PlayerGif1:
-    def __init__(self, parent, canvas, x, y, afterTime, app):
+    def __init__(self, parent, canvas, x, y, afterTime, app, playerIndex = 0):
         self.parent = parent
         self.canvas = canvas
         self.sequence = []
         self.afterTime = afterTime
-        self.playerSpellGifs = app.playerSpellGifs
-        self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/player1.gif"))]
+        self.playerIndex = playerIndex
+        
+        if playerIndex == 0:
+            self.playerSpellGifs = app.playerSpellGifs
+            self.playerText = app.playerText
+            self.enemyGif = app.enemyGif
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/player1.gif"))]
+            self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+            self.hitX = x - 10
+        else:
+            self.playerSpellGifs = app.enemySpellGifs
+            self.playerText = app.enemyText
+            self.enemyGif = app.playerGif
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/player1.gif"))]
+            self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
+            self.hitX = app.rootWidth - x + 5
+    
         self.maxLimit = len(self.sequence)
         self.midLimit = 30
         self.launchLimit = 31
         self.enableLimit = 45
-        self.playerText = app.playerText
-        self.enemyText = app.enemyText
+        self.limit = self.maxLimit
+       
         self.dodgeGifs = app.dodgeGifs
-        self.players = app.players
         self.criticalImages = app.criticalImages
         self.app = app
         
-        self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
-        self.limit = self.maxLimit
         self.after = afterTime//len(self.sequence)
+        self.slowAfter = (self.afterTime//len(self.sequence))*4
         self.animating = True
         self.pausing = True
+        self.size = 1
         self.animate(0)
         
     def animate(self, counter):
@@ -62,7 +76,7 @@ class PlayerGif1:
         
     def setSpell(self, spell):
         
-        self.dodgeGifs[0].pause()
+        self.dodgeGifs[self.playerIndex].pause()
         
         self.limit = self.midLimit
         self.after = (self.afterTime//len(self.sequence))*3
@@ -71,14 +85,14 @@ class PlayerGif1:
         ispis = ""
         color = "white"
         
-        self.canvas.itemconfig(self.criticalImages[0], state = "hidden")
+        self.canvas.itemconfig(self.criticalImages[self.playerIndex], state = "hidden")
             
         if isinstance(spell, AttackSpell):
-            self.limit = self.maxLimit
-            self.after = self.afterTime//len(self.sequence)
-            
-            if not self.players[0].stunned and spell.dodged:
-                self.dodgeGifs[1].goOn()
+            if not self.app.players[self.playerIndex].stunned:
+                self.limit = self.maxLimit
+                self.after = self.afterTime//len(self.sequence)
+                if spell.dodged:
+                    self.dodgeGifs[1-self.playerIndex].goOn()
             
         elif isinstance(spell, Charge):
             ispis = spell.bonus
@@ -90,7 +104,7 @@ class PlayerGif1:
         
         elif isinstance(spell, Stun):
             if spell.dodged:
-                self.dodgeGifs[1].goOn()
+                self.dodgeGifs[1-self.playerIndex].goOn()
             else: 
                 self.app.enemyGif.after = self.app.enemyGif.slowAfter
             
@@ -138,20 +152,32 @@ class PlayerWinnerGif1:
         
 
 class PlayerAttackGif1:
-    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex):
+    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex, playerIndex = 0):
         self.parent = parent
         self.canvas = app.backgroundCanvas
         self.x0 = x
         self.x = x
+        self.dx = 15
         self.y0 = y
         self.y = y
+        self.dy = app.enemyGif.size - app.playerGif.size
         self.afterTime = afterTime//2
         self.app = app
-        self.spell = self.app.spells[spellIndex]
+        self.spellIndex = spellIndex
+        self.playerIndex = playerIndex
         
-        self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/fireball.gif"))]
-
-        self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+        if self.playerIndex == 0:
+            self.enemyText = self.app.enemyText
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/fireball.gif"))]
+            self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+        else:
+            self.dx = -self.dx
+            self.dy = -self.dy
+            self.enemyText = self.app.playerText
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/fireball.gif"))]
+            self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
+            self.x0 = self.x = app.rootWidth - x
+        
         self.after = int(30*afterTime/1500)
         self.animating = True
         self.pausing = True
@@ -173,27 +199,28 @@ class PlayerAttackGif1:
         if self.enabled and not self.pausing: #prikazivanje
             self.canvas.itemconfig(self.image, state="normal")
             self.canvas.itemconfig(self.image, image = self.sequence[counter])
-            
-            if (self.x<510): #kretanje
-                self.x += 15    
-                self.y -= 2
-                self.canvas.move(self.image, 15, -2)
+            spell = self.app.players[self.playerIndex].spells[self.spellIndex]
+
+            #kretanje
+            if (self.playerIndex == 0 and self.x < self.app.enemyGif.hitX) or (self.playerIndex == 1 and self.x > self.app.playerGif.hitX):
+                self.x += self.dx 
+                self.y -= self.dy
+                self.canvas.move(self.image, self.dx, -self.dy)
                 
             else: #zaustavljanje i prikazivanje posledica udara
-                if not self.app.players[0].stunned and not self.spell.dodged:
-                    if self.spell.criticalHit:
+                if not self.app.players[self.playerIndex].stunned and not spell.dodged:
+                    if spell.criticalHit:
                         self.criticalHitSound.play()
-                        self.canvas.itemconfig(self.app.criticalImages[1], state = "normal")
+                        self.canvas.itemconfig(self.app.criticalImages[1-self.playerIndex], state = "normal")
                     else:
                         self.hitSound.play()
-                    healthText = str(int(-self.spell.damageDone))
-                    self.canvas.itemconfig(self.app.enemyText, text = healthText, fill = self.spell.color)
+                    healthText = str(int(-spell.damageDone))
+                    self.canvas.itemconfig(self.enemyText, text = healthText, fill = spell.color)
                 
                 self.enabled = False
         else: #skrivanje
             self.canvas.itemconfig(self.image, state="hidden")
-            
-        
+           
             
         if self.enabled and not self.pausing:
             self.parent.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
@@ -220,13 +247,17 @@ class PlayerAttackGif1:
         
     
 class PlayerHealGif1:
-    def __init__(self, parent, canvas, x, y, app):
+    def __init__(self, parent, canvas, x, y, app, playerIndex = 0):
         self.parent = parent
         self.canvas = canvas
         
-        self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/healing.gif"))]
+        if playerIndex == 0:
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/healing.gif"))]
+            self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+        else:
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/healing.gif"))]
+            self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
 
-        self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         self.after = 33
         self.animating = True
         self.pausing = True
@@ -259,13 +290,17 @@ class PlayerHealGif1:
         
         
 class PlayerChargeGif1:
-    def __init__(self, parent, canvas, x, y, app):
+    def __init__(self, parent, canvas, x, y, app, playerIndex = 0):
         self.parent = parent
         self.canvas = canvas
         
-        self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/charging.gif"))]
+        if playerIndex == 0:
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/charging.gif"))]
+            self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+        else:
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/charging.gif"))]
+            self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
 
-        self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         self.after = 33
         self.animating = True
         self.pausing = True
@@ -299,13 +334,17 @@ class PlayerChargeGif1:
 
 
 class PlayerStunGif1:
-    def __init__(self, parent, canvas, x, y, afterTime, app):
+    def __init__(self, parent, canvas, x, y, afterTime, app, playerIndex = 0):
         self.parent = parent
         self.canvas = canvas
         
-        self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/stued.gif"))]
+        if playerIndex == 0:
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/stued.gif"))]
+            self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+        else:
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/stued.gif"))]
+            self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
 
-        self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         self.after = int(67*afterTime/1500)
         self.animating = True
         self.pausing = True
@@ -342,18 +381,22 @@ class PlayerStunGif1:
     def goOn(self):
         self.pausing = False
         self.canvas.itemconfig(self.image, state="normal")
-        #self.sound.set_volume(0)
         self.sound.play()
         
 
 class PlayerDodgeGif1:
-    def __init__(self, parent, canvas, x, y, app):
+    def __init__(self, parent, canvas, x, y, app, playerIndex = 0):
         self.parent = parent
         self.canvas = canvas
         
-        self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/playerDodge.gif"))]
+        if playerIndex == 0:
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/playerDodge.gif"))]
+            self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+        else:
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/playerDodge.gif"))]
+            self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
 
-        self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+        #self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         self.after = 33
         self.animating = True
         self.pausing = True
