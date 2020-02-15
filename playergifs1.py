@@ -3,6 +3,19 @@ from PIL import Image, ImageTk, ImageSequence
 from Spell import *
 import pygame
 
+#Charizard Y - narandzasti, gifovi koji mogu biti flipovani u zavisnosti od playerIndexa
+
+'''
+Gif ima 4 brzine:
+slowAfter - najvise usporen prikaz kada je igrac stunovan
+waitAfter - usporen prikaz dok igrac ne odabere spell
+normalAfter - normalan prikaz kada igrac igra obicne spellove
+fastAfter - brzi prikaz kada igrac napada
+
+Gif ima dva prikaza:
+maxLimit - prikaz kada je igrac napao i ispalio vatru
+midLimit - osnovni prikaz
+'''
 class PlayerGif1:
     def __init__(self, parent, canvas, x, y, afterTime, app, playerIndex = 0):
         self.parent = parent
@@ -13,18 +26,18 @@ class PlayerGif1:
         
         if playerIndex == 0:
             self.playerSpellGifs = app.playerSpellGifs
-            self.playerText = app.playerText
+            self.playerTexts = app.playerTexts
             self.enemyGif = app.enemyGif
             self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/player1.gif"))]
             self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
             self.hitX = x - 10
         else:
             self.playerSpellGifs = app.enemySpellGifs
-            self.playerText = app.enemyText
+            self.playerTexts = app.enemyTexts
             self.enemyGif = app.playerGif
             self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/player1.gif"))]
             self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
-            self.hitX = app.rootWidth - x + 5
+            self.hitX = app.rootWidth - x + 5 #mesto za primanje udarca
     
         self.maxLimit = len(self.sequence)
         self.midLimit = 30
@@ -36,11 +49,14 @@ class PlayerGif1:
         self.criticalImages = app.criticalImages
         self.app = app
         
-        self.after = afterTime//len(self.sequence)
-        self.slowAfter = (self.afterTime//len(self.sequence))*4
+        self.slowAfter = (self.afterTime//len(self.sequence))*6
+        self.waitAfter = (self.afterTime//len(self.sequence))*4
+        self.normalAfter = (self.afterTime//len(self.sequence))*3
+        self.fastAfter = self.afterTime//len(self.sequence)
+        self.after = self.normalAfter
         self.animating = True
         self.pausing = True
-        self.size = 1
+        self.size = 1 #najmanja velicina
         self.animate(0)
         
     def animate(self, counter):
@@ -71,46 +87,45 @@ class PlayerGif1:
     
     def wait(self):
         self.limit = self.midLimit
-        self.after = (self.afterTime//len(self.sequence))*4
+        self.after = self.waitAfter
         self.pausing = False
         
-    def setSpell(self, spell):
-        
-        self.dodgeGifs[self.playerIndex].pause()
+    #podesavanje brzine, prikaza, ispisa i dodgea na pocetku odigravanja poteza  
+    def setSpell(self, spell): 
         
         self.limit = self.midLimit
-        self.after = (self.afterTime//len(self.sequence))*3
-        
+        if self.app.players[self.playerIndex].stunned:
+            self.after = self.slowAfter
+        else:
+            self.after = self.normalAfter
 
         ispis = ""
         color = "white"
         
-        self.canvas.itemconfig(self.criticalImages[self.playerIndex], state = "hidden")
-            
-        if isinstance(spell, AttackSpell):
-            if not self.app.players[self.playerIndex].stunned:
+        if not self.app.players[self.playerIndex].stunned:
+            if isinstance(spell, AttackSpell):
                 self.limit = self.maxLimit
-                self.after = self.afterTime//len(self.sequence)
+                self.after = self.fastAfter
+                if spell.dodged:
+                    self.dodgeGifs[1-self.playerIndex].goOn()
+                
+            elif isinstance(spell, Charge):
+                ispis = spell.bonus
+                color = spell.color
+            
+            elif isinstance(spell, Heal):
+                ispis = spell.health
+                color = spell.color
+            
+            elif isinstance(spell, Stun):
                 if spell.dodged:
                     self.dodgeGifs[1-self.playerIndex].goOn()
             
-        elif isinstance(spell, Charge):
-            ispis = spell.bonus
-            color = spell.color
-        
-        elif isinstance(spell, Heal):
-            ispis = spell.health
-            color = spell.color
-        
-        elif isinstance(spell, Stun):
-            if spell.dodged:
-                self.dodgeGifs[1-self.playerIndex].goOn()
-            else: 
-                self.app.enemyGif.after = self.app.enemyGif.slowAfter
+        self.app.showText(self.playerTexts, ispis, color)
             
-        self.canvas.itemconfig(self.playerText, text = ispis, fill = color)
-            
-
+'''
+Gif koji se vrti i iskace preko celog ekrana nakon sto je igrac pobedio u borbi
+'''
 class PlayerWinnerGif1:
     def __init__(self, parent, canvas, x, y, app):
         self.parent = parent
@@ -150,7 +165,9 @@ class PlayerWinnerGif1:
         self.canvas.itemconfig(self.image, state="normal")
         self.sound.play()
         
-
+'''
+Gif u pokretu koji se zaustavlja sa zvukom pri ispaljivanju i pogotku 
+'''
 class PlayerAttackGif1:
     def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex, playerIndex = 0):
         self.parent = parent
@@ -167,13 +184,13 @@ class PlayerAttackGif1:
         self.playerIndex = playerIndex
         
         if self.playerIndex == 0:
-            self.enemyText = self.app.enemyText
+            self.enemyTexts = self.app.enemyTexts
             self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/fireball.gif"))]
             self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         else:
             self.dx = -self.dx
             self.dy = -self.dy
-            self.enemyText = self.app.playerText
+            self.enemyTexts = self.app.playerTexts
             self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/fireball.gif"))]
             self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
             self.x0 = self.x = app.rootWidth - x
@@ -199,7 +216,6 @@ class PlayerAttackGif1:
         if self.enabled and not self.pausing: #prikazivanje
             self.canvas.itemconfig(self.image, state="normal")
             self.canvas.itemconfig(self.image, image = self.sequence[counter])
-            spell = self.app.players[self.playerIndex].spells[self.spellIndex]
 
             #kretanje
             if (self.playerIndex == 0 and self.x < self.app.enemyGif.hitX) or (self.playerIndex == 1 and self.x > self.app.playerGif.hitX):
@@ -208,6 +224,8 @@ class PlayerAttackGif1:
                 self.canvas.move(self.image, self.dx, -self.dy)
                 
             else: #zaustavljanje i prikazivanje posledica udara
+                spell = self.app.players[self.playerIndex].spells[self.spellIndex]
+                
                 if not self.app.players[self.playerIndex].stunned and not spell.dodged:
                     if spell.criticalHit:
                         self.criticalHitSound.play()
@@ -215,7 +233,7 @@ class PlayerAttackGif1:
                     else:
                         self.hitSound.play()
                     healthText = str(int(-spell.damageDone))
-                    self.canvas.itemconfig(self.enemyText, text = healthText, fill = spell.color)
+                    self.app.showText(self.enemyTexts, healthText, spell.color)
                 
                 self.enabled = False
         else: #skrivanje
@@ -245,7 +263,9 @@ class PlayerAttackGif1:
     def launch(self):
         self.launchSound.play()
         
-    
+'''
+Gif koji se neprstano vrti
+'''    
 class PlayerHealGif1:
     def __init__(self, parent, canvas, x, y, app, playerIndex = 0):
         self.parent = parent
@@ -288,7 +308,9 @@ class PlayerHealGif1:
         self.canvas.itemconfig(self.image, state="normal")
         self.sound.play()
         
-        
+'''
+Gif koji se neprstano vrti
+'''        
 class PlayerChargeGif1:
     def __init__(self, parent, canvas, x, y, app, playerIndex = 0):
         self.parent = parent
@@ -330,9 +352,10 @@ class PlayerChargeGif1:
         self.pausing = False
         self.canvas.itemconfig(self.image, state="normal")
         self.sound.play()
-
-
-
+        
+'''
+Gif koji se zaustavlja
+'''
 class PlayerStunGif1:
     def __init__(self, parent, canvas, x, y, afterTime, app, playerIndex = 0):
         self.parent = parent
@@ -383,7 +406,9 @@ class PlayerStunGif1:
         self.canvas.itemconfig(self.image, state="normal")
         self.sound.play()
         
-
+'''
+Gif koji se neprstano vrti
+'''    
 class PlayerDodgeGif1:
     def __init__(self, parent, canvas, x, y, app, playerIndex = 0):
         self.parent = parent
@@ -396,7 +421,6 @@ class PlayerDodgeGif1:
             self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/playerDodge.gif"))]
             self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
 
-        #self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         self.after = 33
         self.animating = True
         self.pausing = True
@@ -425,5 +449,4 @@ class PlayerDodgeGif1:
         self.pausing = False
         self.canvas.itemconfig(self.image, state="normal")
         self.sound.play()
-        
-        
+            
