@@ -26,11 +26,12 @@ class DeepMalis(Malis):
     def greedy_action(self, state):
         actions = self.calc_value(state)
         #print(actions)
+        acts = actions
         for i in range(len(self.spells)):
             if(not self.spells[i].castable(self)):
                 actions[0,i] = -999999 
         #print('=================Greedy '+str(np.argmax(actions)))
-        return np.argmax(actions)
+        return np.argmax(actions), np.argmax(actions)==np.argmax(acts)
 
     def random_action(self):
         available_spells = self.available_spell()
@@ -38,7 +39,7 @@ class DeepMalis(Malis):
         for i in range(len(self.spells)):
             if(randomSpell == self.spells[i]):
                 #print('=================Random '+str(i))
-                return i
+                return i, True
         print('=================Random omasio -1')
         return -1
     
@@ -50,18 +51,19 @@ class DeepMalis(Malis):
         if self.exploration_rate > 0:
             self.exploration_rate -= self.exploration_delta
     
-    def train(self, state, winner, turnNum, action):
+    def train(self, state, winner, turnNum, action, done):
         self.queue.put(state)
-        v_s = self.calc_value(self.prev_state)
-        print(v_s)
-        R = self.reward(winner, state, turnNum)
-        v_s_tag = self.calc_value(state) #if winner is None else np.zeros((1,4))
-        v_s[0,action] = R + self.epsilon*np.amax(v_s_tag)#v_s_tag[0,action]#
-        X_train = self.state2array(self.prev_state)
-        target = v_s
-        if target is not None:
-            self.value_model.fit(X_train, target, epochs=10, verbose=0)
-        self.prev_state = state
+        if done:
+            v_s = self.calc_value(self.prev_state)
+            print(v_s)
+            R = self.reward(winner, state, turnNum)
+            v_s_tag = self.calc_value(state) #if winner is None else np.zeros((1,4))
+            v_s[0,action] = (1-self.alpha)*v_s[0,action]+self.alpha*(R+self.epsilon*np.max(v_s_tag))#R + self.epsilon*np.amax(v_s_tag)#v_s_tag[0,action]#
+            X_train = self.state2array(self.prev_state)
+            target = v_s
+            if target is not None:
+                self.value_model.fit(X_train, target, epochs=10, verbose=0)
+            self.prev_state = state
 
     def load_model(self):
         s = 'model_values' + self.tag + '.h5'
@@ -113,6 +115,3 @@ class DeepMalis3(DeepMalis):
         self.spells.append(Spell.Flexible(3,300,30,2))
         self.spells.append(Spell.ProtectionCharge(0,0,400))
         self.spells.append(Spell.DrainAttack(5,400,100))#5,400,100
-        
-        
-        

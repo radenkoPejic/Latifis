@@ -361,7 +361,6 @@ class OnlineLevel1(Level):
         else:
             self.app.enemyStrategy = EnemyStrategy4("dm3vsdm21000vse11000", 0.05)
         
-        self.app.selectedMode += 2
         self.app.level = 1
         self.app.startLevel()
 

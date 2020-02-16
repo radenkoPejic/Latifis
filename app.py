@@ -90,11 +90,14 @@ class Application():
         self.criticalImages = []
 
         self.playerBuffImages = []
+        self.playerBuffPhotos = [self.buffImage, self.buffImage, self.buffImage, self.buffImage, self.buffImage, self.buffImage]
         self.playerBuffTexts = []
         
         self.enemyBuffImages = []
+        self.enemyBuffPhotos = [self.buffImage, self.buffImage, self.buffImage, self.buffImage, self.buffImage, self.buffImage]
         self.enemyBuffTexts = []
         
+        self.firstPlayer = 0
         self.players = []
         self.playerStrategy = None
         self.enemyStrategy = None
@@ -132,13 +135,18 @@ class Application():
         for i in range (len(self.playerBuffImages)):
             
             if i < len(self.players[0].buffs):
-                self.playerStatusCanvas.itemconfig(self.playerBuffImages[i], image = self.players[0].buffs[i].image, state = "normal")
+                photo = Image.open(self.players[0].buffs[i].image)
+                size = self.players[0].buffs[i].buffSize
+                photo = photo.resize((size, size))
+                self.playerBuffPhotos[i] = ImageTk.PhotoImage(photo)
+                self.playerStatusCanvas.itemconfig(self.playerBuffImages[i], image = self.playerBuffPhotos[i], state = "normal")
                 txt = ""
                 if self.players[0].buffs[i].forTextBox != None: 
                     txt = self.players[0].buffs[i].forTextBox.center(7)
                 self.playerStatusCanvas.itemconfig(self.playerBuffTexts[i], text = txt)
             else:
-                self.playerStatusCanvas.itemconfig(self.playerBuffImages[i], image = self.buffImage, state = "hidden")
+                self.playerBuffPhotos[i] = self.buffImage
+                self.playerStatusCanvas.itemconfig(self.playerBuffImages[i], image = self.playerBuffPhotos[i], state = "hidden")
                 self.playerStatusCanvas.itemconfig(self.playerBuffTexts[i], text = "")
             
             
@@ -148,13 +156,18 @@ class Application():
     def showEnemyBuffs(self):
         for i in range (len(self.enemyBuffImages)):
             if i < len(self.players[1].buffs):
-                self.enemyStatusCanvas.itemconfig(self.enemyBuffImages[i], image = self.players[1].buffs[i].image, state = "normal")
+                photo = Image.open(self.players[1].buffs[i].image)
+                size = self.players[1].buffs[i].buffSize
+                photo = photo.resize((size, size))
+                self.enemyBuffPhotos[i] = ImageTk.PhotoImage(photo)
+                self.enemyStatusCanvas.itemconfig(self.enemyBuffImages[i], image = self.enemyBuffPhotos[i], state = "normal")
                 txt = ""
                 if self.players[1].buffs[i].forTextBox != None: 
                     txt = self.players[1].buffs[i].forTextBox.center(7)
                 self.enemyStatusCanvas.itemconfig(self.enemyBuffTexts[i], text = txt)
             else:
-                self.enemyStatusCanvas.itemconfig(self.enemyBuffImages[i], image = self.buffImage, state = "hidden")
+                self.enemyBuffPhotos[i] = self.buffImage
+                self.enemyStatusCanvas.itemconfig(self.enemyBuffImages[i], image = self.enemyBuffPhotos[i], state = "hidden")
                 self.enemyStatusCanvas.itemconfig(self.enemyBuffTexts[i], text = "")
             
             
@@ -197,12 +210,14 @@ class Application():
         
 
     def run(self):
-    
-        self.updateStatus()
         
         if self.game.winner is None:
             turn = self.potez//2 + 1
+            
+            #odlucivanje ko je na redu
             side = self.potez % 2
+            if self.firstPlayer == 1:
+                side = 1 - side
             
             #pulsiranje u kriticnim momentima pred poraz
             if self.players[0].health < 150:
@@ -211,7 +226,8 @@ class Application():
             
             #dolazak na potez - jos nije odluceno sta se igra
             if self.playerSelected[side]==0:
-            
+                self.updateStatus()
+                
                 if side == 0:
                     self.turnCanvas.itemconfig(self.turnText, text = "Player's turn " + str(turn))
                     self.enemyGif.pause()
@@ -299,7 +315,7 @@ class Application():
                 action = None
                 #odigravanje poteza za playera
                 if self.playerModes[self.side]=="player":
-                    self.playerActionIndex = self.players[self.side].get_next_action(self.players[self.side].prev_state)
+                    self.playerActionIndex = self.players[self.side].get_next_action(self.players[self.side].prev_state)[0]
                     self.players[self.side].take_action(self.playerActionIndex, self.players[1-self.side])
                     action = self.players[self.side].spells[self.playerActionIndex]
                 #odigravanje poteza za humana
@@ -311,7 +327,9 @@ class Application():
                 elif self.playerModes[self.side]=="enemy":
                     self.playerActionIndex = self.players[self.side].stepFuzzy(self.players[1-self.side])
                     action = self.players[self.side].spells[self.playerActionIndex]
-                
+                ##doraditi
+                #elif self.playerModes[self.side]=="online":
+                #action = self.players[self.side].spells[self.playerActionIndex]
                 
                 #apdejt poteza i pokretanje gifova izazvanih spellom
                 if self.side == 0:  
@@ -340,6 +358,7 @@ class Application():
                 
         #ako je pobedio prvi igrac prikazuje se winnergif preko celog ekrana i prelazi se na sledeci nivo ako postoji       
         elif self.game.winner == "Malis":
+            self.updateStatus()
             self.turnCanvas.itemconfig(self.turnText, text = "     Player won")
             self.stopGame()
             self.root.after(2*self.afterTime, self.playerWinnerGif.goOn)
@@ -353,6 +372,7 @@ class Application():
             
         #ako je pobedio drugi igrac prikazu je se loosergif preko celog ekrana i sledi povratak u glavni meni    
         else:
+            self.updateStatus()
             self.turnCanvas.itemconfig(self.turnText, text = "     Enemy won")
             self.stopGame()
             pygame.mixer.music.fadeout(2*self.afterTime)
@@ -368,8 +388,6 @@ class Application():
         app.enemyStrategy.stop(self)
         
     def backToMenu(self):
-        ##obrisati
-        self.selectedMode = 0 
         self.root.after(self.afterTime*3, self.hideLoser)
         self.root.after(self.afterTime*3, self.playerWinnerGif.pause)
         self.root.after(self.afterTime*3, self.mainMenu)
@@ -587,6 +605,10 @@ class Application():
         self.menuModePhoto2 = self.menuModePhoto2.resize((180, 60))
         self.menuModeImages.append(ImageTk.PhotoImage(self.menuModePhoto2))
         
+        self.menuModePhoto3 = Image.open("resources/modehvh.png")
+        self.menuModePhoto3 = self.menuModePhoto3.resize((180, 60))
+        self.menuModeImages.append(ImageTk.PhotoImage(self.menuModePhoto3))
+        
         self.numOfModes = len(self.menuModeImages)
         
         self.menuModeImage = self.menuCanvas.create_image(185, 20, image = self.menuModeImages[0], anchor = NW)
@@ -705,12 +727,16 @@ class Application():
         if self.selectedMode == 0:
             self.playerModes = ["player", "enemy"]
         elif self.selectedMode == 1:
-            self.playerModes = ["human", "enemy"]\
-        ##obrisati i doraditi    
+            self.playerModes = ["human", "enemy"]
         elif self.selectedMode == 2:
+            self.playerModes = ["human", "player"]
+            #self.playerModes = ["human", "online"]
+        ##obrisati i doraditi    
+        '''elif self.selectedMode == 2:
             self.playerModes = ["player", "player"]
         elif self.selectedMode == 3:
-            self.playerModes = ["human", "player"]
+            self.playerModes = ["human", "player"]'''
+        
         
         self.playerSelected = [0, 0]
     
@@ -798,8 +824,12 @@ class Application():
     
     def startGame(self):
         if self.selectedMode < 2:
-            self.levelStrategy = OnlineLevelStrategy(self)
-        self.levels[0].level()
+            self.levelStrategy = OfflineLevelStrategy(self)
+            self.levels[0].level()
+        else:
+            self. levelStrategy = OnlineLevelStrategy(self)
+            ##doraditi
+            self.levels[0].level()
     
     def setMusicVolume(self, volume):
         self.musicVolume = int(volume)

@@ -1,5 +1,4 @@
 import random
-from PIL import Image, ImageTk
 
 class Buff:
     def __init__(self, cooldown):
@@ -7,7 +6,7 @@ class Buff:
         self.curr_cooldown = cooldown
         self.forTextBox = None
         self.buffSize = 30
-        self.buffImage = None
+        self.image = None
         
     def stillActive(self):
         return True if (self.curr_cooldown > 0) else False
@@ -39,8 +38,8 @@ class HealBuff(Buff):
         
 class HealFullBuff(HealBuff):
     def __init__(self, cooldown, percent):
-        self.image = ImageTk.PhotoImage(Image.open("resources/healFullBuff.png"))
         super().__init__(cooldown, percent)
+        self.image = "resources/healFullBuff.png"
         self.forTextBox = "FullHeal"
     def action(self, c1, c2):
         return (c1.max_health)*self.percent//100
@@ -49,8 +48,8 @@ class HealFullBuff(HealBuff):
         
 class HealCurrBuff(HealBuff):
     def __init__(self, cooldown, percent):
-        self.image = ImageTk.PhotoImage(Image.open("resources/healCurrBuff.png"))
         super().__init__(cooldown, percent)
+        self.image = "resources/healCurrBuff.png"
         self.forTextBox = "CurrHeal"
     def action(self, c1, c2):
         return (c1.health)*self.percent//100
@@ -59,8 +58,8 @@ class HealCurrBuff(HealBuff):
         
 class HealMissBuff(HealBuff):
     def __init__(self, cooldown, percent):
-        self.image = ImageTk.PhotoImage(Image.open("resources/healMissBuff.png"))
         super().__init__(cooldown, percent)
+        self.image = "resources/healMissBuff.png"
         self.forTextBox = "MissHeal"
     def action(self, c1, c2):
         return (c1.max_health-c1.health)*self.percent//100
@@ -76,9 +75,7 @@ class FlexBuff(Buff):
         self.forTextBox = "Flex"
         self.percent = percent
         self.id = -1
-        self.photo = Image.open("resources/flexBuff.jpg")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.image = "resources/flexBuff.jpg"
     def castB(self,c1,c2=None):
         super().castB(c1, c2)
         if(self.curr_cooldown == (self.cooldown-1)):
@@ -97,9 +94,7 @@ class ProtectionBuff(Buff):
         self.percent = percent
         self.forTextBox = "Protect"
         self.id = -1
-        self.photo = Image.open("resources/protectionBuff.jpg")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.image = "resources/protectionBuff.jpg"
     def castB(self,c1,c2=None):
         super().castB(c1, c2)
         if(self.curr_cooldown == (self.cooldown-1)):
@@ -118,9 +113,7 @@ class WeakenBuff(Buff):
         self.percent = percent
         self.forTextBox = "Weak"
         self.id = -1
-        self.photo = Image.open("resources/weakenBuff.jpg")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.image = "resources/weakenBuff.jpg"
     def castB(self,c1,c2=None):
         super().castB(c1, c2)
         if(self.curr_cooldown == (self.cooldown-1)):
@@ -138,9 +131,7 @@ class StunBuff(Buff):
         self.curr_cooldown = cooldown
         self.forTextBox = "Stun"
         self.id = -1 
-        self.photo = Image.open("resources/stunBuff.jpg")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.image = "resources/stunBuff.jpg"
     def castB(self,c1,c2=None):
         super().castB(c1, c2)
         if(self.curr_cooldown == (self.cooldown-1)):
@@ -157,10 +148,8 @@ class BurnBuff(Buff):
         self.cooldown = cooldown
         self.curr_cooldown = cooldown
         self.percent = percent
-        self.forTextBox = "Burn" 
-        self.photo = Image.open("resources/burnBuff.jpg")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.forTextBox = "Burn"
+        self.image = "resources/burnBuff.jpg"
     def castB(self,c1,c2=None):
         super().castB(c1, c2)
         burn = c1.health*self.percent//100
@@ -180,9 +169,7 @@ class DrainBuff(Buff):
         self.curr_cooldown = cooldown
         self.percent = percent
         self.forTextBox = "Drain"
-        self.photo = Image.open("resources/drainBuff.png")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.image = "resources/drainBuff.png"
     def castB(self,c1,c2=None):
         super().castB(c1, c2)
         drain = c1.max_health*self.percent//100
@@ -218,9 +205,7 @@ class IcePlus(EnvironmentBuff):
     def __init__(self):
         super().__init__(1)
         self.forTextBox = "Ice"
-        self.photo = Image.open("resources/icePlus.jpg")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.image = "resources/icePlus.jpg"
         self.casted = False
     def castB(self,c1,c2=None):
         if not self.casted:
@@ -233,9 +218,7 @@ class IceMinus(EnvironmentBuff):
     def __init__(self):
         super().__init__(1)
         self.forTextBox = "Ice"
-        self.photo = Image.open("resources/iceMinus.jpg")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.image = "resources/iceMinus.jpg"
         self.casted = False     
     def castB(self,c1,c2=None):
         if not self.casted:
@@ -249,9 +232,7 @@ class LavaPlus(EnvironmentBuff):
     def __init__(self):
         super().__init__(1)
         self.forTextBox = "Lava"
-        self.photo = Image.open("resources/lavaPlus.jpg")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.image = "resources/lavaPlus.jpg"
         self.casted = False 
     def castB(self,c1,c2=None):
         if not self.casted: 
@@ -264,9 +245,7 @@ class LavaMinus(EnvironmentBuff):
     def __init__(self):
         super().__init__(1)
         self.forTextBox = "Lava"
-        self.photo = Image.open("resources/lavaMinus.jpg")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.image = "resources/lavaMinus.jpg"
     def castB(self,c1,c2=None):
         c1.health -= 0.01*c1.max_health
         if(c1.health<0):
@@ -279,9 +258,7 @@ class DesertPlus(EnvironmentBuff):
     def __init__(self):
         super().__init__(1)
         self.forTextBox = "Desert"
-        self.photo = Image.open("resources/desertPlus.jpg")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.image = "resources/desertPlus.jpg"
     def castB(self,c1,c2=None):
         c1.energy += 0.1*c1.max_health
         if(c1.energy>c1.max_energy):
@@ -293,9 +270,7 @@ class DesertMinus(EnvironmentBuff):
     def __init__(self):
         super().__init__(1)
         self.forTextBox = "Desert"
-        self.photo = Image.open("resources/desertMinus.png")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.image = "resources/desertMinus.png"
         self.casted = False 
     def castB(self,c1,c2=None):
         if not self.casted:
@@ -309,9 +284,7 @@ class ForestPlus(EnvironmentBuff):
     def __init__(self):
         super().__init__(1)
         self.forTextBox = "Forest"
-        self.photo = Image.open("resources/forestPlus.jpg")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.image = "resources/forestPlus.jpg"
         self.casted = False 
     def castB(self,c1,c2=None):
         if not self.casted:
@@ -324,9 +297,7 @@ class ForestMinus(EnvironmentBuff):
     def __init__(self):
         super().__init__(1)
         self.forTextBox = "Forest"
-        self.photo = Image.open("resources/forestMinus.jpg")
-        self.photo = self.photo.resize((self.buffSize, self.buffSize))
-        self.image = ImageTk.PhotoImage(self.photo)
+        self.image = "resources/forestMinus.jpg"
     def castB(self,c1,c2=None):
         #if(random.random()<0.03):
         if c1.health!=c1.max_health and c2.stunned==False \
