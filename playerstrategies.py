@@ -46,8 +46,10 @@ class PlayerStrategy1(PlayerStrategy): #Charizard Y - narandzasti
     "Stun\nDuration: 3, Energy: 200, Cooldown: 7\nAdditional effect: Adds StunBuff to enemy's buff list if spell is not dodged"
     ]
     
-    def setPlayer(self, app):
+    def setPlayer(self, app, toLoad = 1):
         app.players.append(DeepMalis2(app.playerStartHealth,50,app.playerStartEnergy, self.tag, self.explorationFactor))
+        if toLoad == 1:
+            app.players[0].load_model()
         
     def setPlayerTexts(self, app):
         app.createTexts(app.playerTexts, 183, 194)
@@ -109,8 +111,10 @@ class PlayerStrategy2(PlayerStrategy): #Charizard X - sivo-plavi
     "DrainAttack\nDamage: 100, Energy: 400, Cooldown: 5\nAdditional effect: 90% chance of adding DrainBuff to enemy's buff list if spell\nis not dodged"
     ]
     
-    def setPlayer(self, app):
-        app.players.append(DeepMalis3(app.playerStartHealth,50,app.playerStartEnergy, self.tag, self.explorationFactor))
+    def setPlayer(self, app, toLoad = 1):
+        app.players.append(DeepMalis3(app.playerStartHealth,50,app.playerStartEnergy, self.tag, 10))#self.explorationFactor))
+        if toLoad == 1:
+            app.players[0].load_model()
         
     def setPlayerTexts(self, app):
         app.createTexts(app.playerTexts, 183, 194)
@@ -230,9 +234,10 @@ class EnemyStrategy2(PlayerStrategy): #Enemy2 - plavi
 
 
 class EnemyStrategy3(PlayerStrategy): #Charizard Y - narandzasti, flipovan 
+    def __init__(self, app, player2):
+        super().__init__("", 1)
+        app.players.append(player2)
     
-    def setPlayer(self, app):
-        app.players.append(DeepMalis2(app.enemyStartHealth,50,app.enemyStartEnergy, self.tag, self.explorationFactor))
         
     def setPlayerTexts(self, app):
         app.createTexts(app.enemyTexts, app.rootWidth - 183, 194, NE)
@@ -268,9 +273,12 @@ class EnemyStrategy3(PlayerStrategy): #Charizard Y - narandzasti, flipovan
         
 
 class EnemyStrategy4(PlayerStrategy): #Charizard X - sivo-plavi, flipovan
+    def __init__(self, app, player2):
+        super().__init__("", 1)
+        app.players.append(player2)
 
     def setPlayer(self, app):
-        app.players.append(DeepMalis3(app.enemyStartHealth,50,app.enemyStartEnergy, self.tag, self.explorationFactor))
+        return
         
     def setPlayerTexts(self, app):
         app.createTexts(app.enemyTexts, app.rootWidth - 183, 194, NE)
@@ -341,6 +349,7 @@ class OfflineLevel2(Level):
         self.app.root.after(self.app.afterTime*3, self.app.playerWinnerGif.pause)
         self.app.root.after(self.app.afterTime*3, self.app.startLevel)
 
+##obrisati
 class OnlineLevel1(Level):
     def level(self):
         self.app.menuCanvas.pack_forget()
@@ -357,9 +366,9 @@ class OnlineLevel1(Level):
             self.app.playerWinnerGif = PlayerWinnerGif2(self.app.root, self.app.endGameCanvas, 0, 0, self.app)
         
         if random.random()<0.5:
-            self.app.enemyStrategy = EnemyStrategy3("Novi11100", 0.05)
+            self.app.enemyStrategy = EnemyStrategy3(DeepMalis2(self.app.enemyStartHealth,50,self.app.enemyStartEnergy, "Novi11100", 10.05))
         else:
-            self.app.enemyStrategy = EnemyStrategy4("dm3vsdm21000vse11000", 0.05)
+            self.app.enemyStrategy = EnemyStrategy4(DeepMalis3(self.app.enemyStartHealth,50,self.app.enemyStartEnergy, "dm3vsdm21000vse11000", 10.05))
         
         self.app.level = 1
         self.app.startLevel()

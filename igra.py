@@ -6,6 +6,10 @@ class Igra():
         self.player1 = player
         self.player2 = enemy
         self.init_game()
+    
+    def setPlayers(self, players):
+        self.player1 = players[0]
+        self.player2 = players[1]
         
     def doBuffsPlayer(self):
         i = 0

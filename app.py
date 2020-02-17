@@ -1,8 +1,89 @@
 from tkinter import ttk
 from igra import Igra
 from playerstrategies import *
-from math import ceil
+from math import ceil, floor
 import pygame
+from pubnub.callbacks import SubscribeCallback
+from pubnub.enums import PNStatusCategory
+from pubnub.pnconfiguration import PNConfiguration
+from pubnub.pubnub import PubNub
+import os
+import jsonpickle
+
+
+
+def connection_callback(envelope, status):
+    global app
+    # Check whether request successfully completed or not
+    if not status.is_error():
+        app.coinSent = True
+        pass
+        
+def my_publish_callback(envelope, status):
+    # Check whether request successfully completed or not
+    if not status.is_error():
+        pass    
+        
+class MySubscribeCallback(SubscribeCallback):
+    def presence(self, pubnub, presence):
+        pass
+    def status(self, pubnub, status):
+        print(status)
+        print(type(pubnub))
+    def message(self, pubnub, message):
+        global app
+        print("message.message[0]="+str(message.message[0]))
+        
+        if message.message[0] == 0:
+            print(app.coinSent)
+            print(message.message[1])
+            if app.coinSent == False:
+                app.enemyCoin = message.message[1]
+            app.coinSent = False
+            app.checkConnection()
+        
+        elif message.message[0] == 1:
+            message.message[1] = message.message[1].replace("\\\"","\"")
+            player2 = jsonpickle.decode(message.message[1])
+            selectedPlayer2 = message.message[2]
+            print(selectedPlayer2)
+            coin = message.message[3]
+            print(coin)
+            if coin ==  app.enemyCoin:
+                if selectedPlayer2 == 0:
+                    app.enemyStrategy = EnemyStrategy3(app, player2)
+                else:
+                    app.enemyStrategy = EnemyStrategy4(app, player2)
+                app.startOnlineGame()
+                
+        elif message.message[0] == 2:
+            if app.side == 1:
+                message.message[1] = message.message[1].replace("\\\"","\"")
+                app.newPlayers[1] = jsonpickle.decode(message.message[1])
+                app.received[0] = True
+                app.checkReceived()
+            
+        elif message.message[0] == 3:
+            if app.side == 1:
+                message.message[1] = message.message[1].replace("\\\"","\"")
+                app.newPlayers[0] = jsonpickle.decode(message.message[1])
+                app.received[1] = True
+                app.checkReceived()
+                
+        elif message.message[0] == 4:
+            if app.side == 1:
+                app.playerActionIndex = int(message.message[1])
+                app.received[2] = True
+                app.checkReceived()
+            
+            
+def prepare(player): 
+    global app
+    newA = jsonpickle.encode(player)
+    newA = str(newA)
+    newA = newA.replace("\'","\"")
+    newA = newA.replace("\"","\\\"")
+    return newA
 
 class Application():
 
@@ -99,6 +180,7 @@ class Application():
         
         self.firstPlayer = 0
         self.players = []
+        self.newPlayers = [None, None]
         self.playerStrategy = None
         self.enemyStrategy = None
 
@@ -128,9 +210,14 @@ class Application():
         self.musicVolume = 100
         self.playerModes = []
         self.playerSelected = []
+        
+        self.received = [False, False, False]
+        #self.tmpModel = None
+        self.coinSent = False
+        self.playerCoin = -1
+        self.enemyCoin = -1
 
     #prikaz buffova, maksimalne duzine liste 6, ako je kraca dopunjuje se prikaz skrivenom difolt slikom
-    ##prikazivati nove image uvek umesto da se salju
     def showPlayerBuffs(self):
         for i in range (len(self.playerBuffImages)):
             
@@ -245,9 +332,7 @@ class Application():
                     self.showEnemyBuffs()    
                     
                 
-                #self.backgroundCanvas.itemconfig(self.playerText, text = "")
                 self.showText(self.playerTexts, "")
-                #self.backgroundCanvas.itemconfig(self.enemyText, text = "")
                 self.showText(self.enemyTexts, "")
                 self.backgroundCanvas.itemconfig(self.criticalImages[side], state = "hidden")
                 self.dodgeGifs[side].pause()
@@ -327,9 +412,16 @@ class Application():
                 elif self.playerModes[self.side]=="enemy":
                     self.playerActionIndex = self.players[self.side].stepFuzzy(self.players[1-self.side])
                     action = self.players[self.side].spells[self.playerActionIndex]
-                ##doraditi
-                #elif self.playerModes[self.side]=="online":
-                #action = self.players[self.side].spells[self.playerActionIndex]
+                #dohvatanje odigranog poteza online igraca
+                elif self.playerModes[self.side]=="online":
+                    action = self.players[self.side].spells[self.playerActionIndex]
+                    
+                #slanje poruke ka online protivniku
+                if self.side == 0 and self.playerModes[1]=="online":
+                    pubnub.publish().channel("chan-1").message([4,str(self.playerActionIndex)]).pn_async(my_publish_callback)
+                    pubnub.publish().channel("chan-1").message([2,prepare(self.players[0])]).pn_async(my_publish_callback)
+                    pubnub.publish().channel("chan-1").message([3,prepare(self.players[1])]).pn_async(my_publish_callback)
+                
                 
                 #apdejt poteza i pokretanje gifova izazvanih spellom
                 if self.side == 0:  
@@ -352,7 +444,7 @@ class Application():
 
                 #provera kraja igre 
                 self.game.game_winner()
-                
+
                 #kraj poteza i prelazak na sledeci potez
                 self.root.after(self.afterTime+self.switchTime, self.run)
                 
@@ -388,6 +480,8 @@ class Application():
         app.enemyStrategy.stop(self)
         
     def backToMenu(self):
+        self.playerFirst = 0
+        self.playerCoin = self.enemyCoin = -1
         self.root.after(self.afterTime*3, self.hideLoser)
         self.root.after(self.afterTime*3, self.playerWinnerGif.pause)
         self.root.after(self.afterTime*3, self.mainMenu)
@@ -729,20 +823,15 @@ class Application():
         elif self.selectedMode == 1:
             self.playerModes = ["human", "enemy"]
         elif self.selectedMode == 2:
-            self.playerModes = ["human", "player"]
-            #self.playerModes = ["human", "online"]
-        ##obrisati i doraditi    
-        '''elif self.selectedMode == 2:
-            self.playerModes = ["player", "player"]
-        elif self.selectedMode == 3:
-            self.playerModes = ["human", "player"]'''
+            self.playerModes = ["human", "online"]
         
         
         self.playerSelected = [0, 0]
     
         self.backgroundCanvas.delete("all")
     
-        self.selectEnvironment()
+        if self.playerModes[1] != "online":
+            self.selectEnvironment()
         self.backgroundCanvas.create_image(0, 0, image = self.backgroundImage, anchor = NW)
         
         self.playerEnergyBar["maximum"] = 100
@@ -766,11 +855,11 @@ class Application():
         self.playerSpellGifs = []
         self.enemySpellGifs = []
         
-
-        self.players = []
-        
-        self.playerStrategy.setPlayer(self)
-        self.enemyStrategy.setPlayer(self)
+        if self.playerModes[1] != "online":
+            self.players = []
+            
+            self.playerStrategy.setPlayer(self)
+            self.enemyStrategy.setPlayer(self)
         
         self.playerStrategy.setPlayerSpellImages(self)
         
@@ -801,15 +890,17 @@ class Application():
         self.playerStrategy.setEnvironmentBuff(self.environmentTags[self.environment], self.players[0])
         self.enemyStrategy.setEnvironmentBuff(self.environmentTags[self.environment], self.players[1])
         
+        
+        self.menuCanvas.pack_forget()
         self.root.after(3, self.run)
         
         
-    def selectEnvironment(self):
-        randEnvironment = -1
-        while True:
-            randEnvironment = random.randint(0, 3)
-            if randEnvironment != self.environment:
-                break
+    def selectEnvironment(self, randEnvironment = -1):
+        if randEnvironment == -1:
+            while True:
+                randEnvironment = random.randint(0, 3)
+                if randEnvironment != self.environment:
+                    break
                 
         self.environment = randEnvironment
         self.backgroundPhoto = Image.open("resources/background" + str(randEnvironment+1)+".jpg")
@@ -827,9 +918,75 @@ class Application():
             self.levelStrategy = OfflineLevelStrategy(self)
             self.levels[0].level()
         else:
-            self. levelStrategy = OnlineLevelStrategy(self)
-            ##doraditi
-            self.levels[0].level()
+            self.levelStrategy = OnlineLevelStrategy(self)
+            self.players = []
+            self.selectPlayerOnline()
+            self.connectOnline()
+            
+            
+    #odabir igraca za online igru
+    def selectPlayerOnline(self):
+        self.playerHealth = self.playerStartHealth = 1000
+        self.playerEnergy = self.playerStartEnergy = 1000
+        self.enemyHealth = self.enemyStartHealth = 1000
+        self.enemyEnergy = self.enemyStartEnergy = 1000
+        
+        #kreiranje igraca
+        if (self.selectedPlayer == 0):
+            self.playerStrategy = PlayerStrategy1("Novi11100", 0.05)
+            self.playerWinnerGif = PlayerWinnerGif1(self.root, self.endGameCanvas, 0, 0, self)
+        else:
+            self.playerStrategy = PlayerStrategy2("dm3vsdm21000vse11000", 0.05)
+            self.playerWinnerGif = PlayerWinnerGif2(self.root, self.endGameCanvas, 0, 0, self)
+        self.playerStrategy.setPlayer(self, 0)
+        
+    #konekcija sa protivnikom i slanje random broja za odabir ko igra prvi i koja je pozadina
+    def connectOnline(self):
+        self.playerCoin = random.random()
+        pubnub.publish().channel("chan-1").message([0,self.playerCoin]).pn_async(connection_callback)
+        
+    #provera da li su se protivnici konektovali i da li je odredjeno ko igra prvi    
+    def checkConnection(self):
+        if self.playerCoin != -1 and self.enemyCoin != -1:
+            if self.playerCoin < self.enemyCoin:
+                self.firstPlayer = 0
+                self.sendPlayer()
+            elif self.playerCoin > self.enemyCoin:
+                self.firstPlayer = 1
+                self.sendPlayer()
+            else: #ako nesto nije uspelo ili su se pogodila dva ista randoma pokusavamo ponovo
+                self.playerCoin = self.enemyCoin = -1
+                self.connectOnline()
+    
+    #slanje igraca online protivniku i postavljanje environmenta
+    def sendPlayer(self):
+        if self.firstPlayer == 0:
+            pom = min(0.49, self.playerCoin)
+        else:
+            pom = min(0.49, self.enemyCoin)
+        
+        randEnvironment = floor(pom * 8)
+        self.selectEnvironment(randEnvironment)
+        
+        pubnub.publish().channel("chan-1").message([1,prepare(self.players[0]), self.selectedPlayer, self.playerCoin]).pn_async(my_publish_callback)
+  
+  
+    #pokretanje online igre
+    def startOnlineGame(self):
+        self.level = 1
+        self.startLevel()
+    
+    #provera da li su stigle sve poruke od online protivnika
+    def checkReceived(self):
+        if self.received[0]==True and self.received[1]==True and self.received[2]==True:
+            self.received[0] = self.received[1] = self.received[2] = False
+            self.playerSelected[1] = 1
+            self.players[0] = self.newPlayers[0]
+            self.players[1] = self.newPlayers[1]
+            self.game.setPlayers(self.players)
+            #self.game.game_winner()
+            self.run()
+    
     
     def setMusicVolume(self, volume):
         self.musicVolume = int(volume)
@@ -970,11 +1127,27 @@ class Application():
             self.playerSelected[0] = 1
             self.run()
     
-#main    
+def doExit():
+    os._exit(0)
+    
+    
+#main
 root = Tk()
+root.protocol('WM_DELETE_WINDOW', doExit)
+
 pygame.init()
 
 app = Application(root)
+
+pnconfig = PNConfiguration()
+pnconfig.publish_key = 'pub-c-57b6337c-3f6d-4727-b5ec-3d9ccb6d737e'
+pnconfig.subscribe_key = 'sub-c-26f8560a-4e3c-11ea-94fd-ea35a5fcc55f'
+pnconfig.ssl = True
+pubnub = PubNub(pnconfig)
+pubnub.add_listener(MySubscribeCallback())
+pubnub.subscribe().channels("chan-1").execute()
+
+
 app.startApp()
 
 root.mainloop()

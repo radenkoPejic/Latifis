@@ -11,7 +11,8 @@ class DeepMalis(Malis):
 
     def __init__(self, health, damage, energy, tag, exploration_factor=1):
         super().__init__(health, damage, energy, tag, exploration_factor)
-        self.value_model = self.load_model()
+        self.value_model = None
+        #self.value_model = self.load_model()
 
     @staticmethod
     def state2array(state):
@@ -80,7 +81,8 @@ class DeepMalis(Malis):
             model.compile(optimizer='adam', loss='mean_absolute_error', metrics=['accuracy'])
 
         model.summary()
-        return model
+        self.value_model = model
+        #return model
 
     def calc_value(self, state):
         return self.value_model.predict(self.state2array(state))
