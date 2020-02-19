@@ -112,7 +112,7 @@ class PlayerStrategy2(PlayerStrategy): #Charizard X - sivo-plavi
     ]
     
     def setPlayer(self, app, toLoad = 1):
-        app.players.append(DeepMalis3(app.playerStartHealth,50,app.playerStartEnergy, self.tag, 10))#self.explorationFactor))
+        app.players.append(DeepMalis3(app.playerStartHealth,50,app.playerStartEnergy, self.tag, self.explorationFactor))
         if toLoad == 1:
             app.players[0].load_model()
         

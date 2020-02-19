@@ -7,7 +7,6 @@ class Buff:
         self.forTextBox = None
         self.buffSize = 30
         self.image = None
-        
     def stillActive(self):
         return True if (self.curr_cooldown > 0) else False
     def castB(self,obj1,obj2=None):

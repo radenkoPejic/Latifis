@@ -1,9 +1,10 @@
 from Spell import *
+from Player import rootPlayer
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
 
-class Enemy:
+class Enemy(rootPlayer):
     def __init__(self, health, damage, energy,tag='Enemy', exploration_factor=1):
         self.health = health
         self.max_health = health
@@ -29,20 +30,19 @@ class Enemy:
     def refil(self):
         self.health = self.max_health
         self.energy = self.max_energy
+    
+    #Obican step koriscen za treniranje    
     def step(self,p):
         spellID = 0
         self.spells[spellID].cast(self,p)
         return spellID
+    
+    #neophodno zbog pozivanja stepFuzzy f-je
     def initFuzzy(self,p):
         playerHealth = ctrl.Antecedent(np.arange(0, p.max_health+1, 1), 'playerHealth')
         playerEnergy = ctrl.Antecedent(np.arange(0, p.max_energy+1, 1), 'playerEnergy')
         health = ctrl.Antecedent(np.arange(0, self.max_health+1, 1), 'health')
-        """
-        spells = np.array([])
-        for i in range(len(self.spells)):
-            if(self.spells[i].castable(self)):
-                spells = np.append(spells,np.array(i))
-        """
+        
         spellToPlay = ctrl.Consequent(np.array([0,1,2,3]), 'spellToPlay')
         
         playerHealth.automf(3)
@@ -65,7 +65,8 @@ class Enemy:
         
         self.tipping = ctrl.ControlSystemSimulation(tipping_ctrl)
         #spellToPlay.view()
-        
+    
+    #potez fuzzy igraca
     def stepFuzzy(self,p):
         self.tipping.input['playerHealth'] = p.health
         self.tipping.input['playerEnergy'] = p.energy
@@ -88,15 +89,13 @@ class Enemy:
             carolija.reduceCooldown()
         return spellID
         
-        
-        
-        
     def selfState(self):
         return 100*self.health//self.max_health
     def engState(self):
         return 100*self.energy//self.max_energy
     def isDead(self):
         return self.health<=0
+        
 class Enemy2(Enemy):
     def __init__(self, health, damage, energy,tag='Enemy2', exploration_factor=1):
         super().__init__(health, damage, energy, tag, exploration_factor=1)
@@ -108,10 +107,12 @@ class Enemy2(Enemy):
         self.spells = []
         self.buffs = []
         self.spells.append(Attack(0,0,50))
-        self.spells.append(Long_MissHeal(9,0,10,2))
+        self.spells.append(Long_CurrHeal(9,0,10,2))
         self.spells.append(Rewind(12,0,3))
         self.spells.append(WeakenAttack(7,0,100))
         #self.spells.append(Stun(7,0,4))
+        
+    #Obican step koriscen za treniranje     
     def step(self,p):
         for spell in self.spells:
             spell.reduceCooldown()
@@ -123,7 +124,8 @@ class Enemy2(Enemy):
                 #castedSpell = self.spells[1]
         self.spells[spellID].cast(self,p)
         return spellID
-        
+    
+    #neophodno zbog pozivanja stepFuzzy f-je    
     def initFuzzy(self,p):
         playerHealth = ctrl.Antecedent(np.arange(0, p.max_health+1, 1), 'playerHealth')
         playerEnergy = ctrl.Antecedent(np.arange(0, p.max_energy+1, 1), 'playerEnergy')

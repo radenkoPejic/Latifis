@@ -18,6 +18,7 @@ class DeepMalis(Malis):
     def state2array(state):
         index = int(state[0]*100+state[1])
         return np.array([index])
+        
     def get_next_action(self, state):
         if random.random() > self.exploration_rate: # Explore (gamble) or exploit (greedy)
             return self.greedy_action(state)
@@ -32,7 +33,7 @@ class DeepMalis(Malis):
             if(not self.spells[i].castable(self)):
                 actions[0,i] = -999999 
         #print('=================Greedy '+str(np.argmax(actions)))
-        return np.argmax(actions), np.argmax(actions)==np.argmax(acts)
+        return np.argmax(actions), np.argmax(actions)==np.argmax(acts) #drugi argument je provera da l je odigran zeljeni spell, tj castable
 
     def random_action(self):
         available_spells = self.available_spell()
@@ -44,6 +45,11 @@ class DeepMalis(Malis):
         print('=================Random omasio -1')
         return -1
     
+    def step(self, enemy):
+        action = get_next_action(prev_state)
+        state = take_action(action, enemy)
+    
+    #f-ja nije koriscena, vec su njeni delovi integrisani u igra.py
     def update(self, state, winner, turnNum, action):
         # Train our model with new data
         self.train(state, winner, turnNum, action)
@@ -54,7 +60,7 @@ class DeepMalis(Malis):
     
     def train(self, state, winner, turnNum, action, done):
         self.queue.put(state)
-        if done:
+        if done: #samo ako je odigran zeljeni spell, onda treniraj da naucis kako igrati
             v_s = self.calc_value(self.prev_state)
             print(v_s)
             R = self.reward(winner, state, turnNum)

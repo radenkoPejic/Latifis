@@ -1,7 +1,11 @@
 import Spell
 from myQueue import myQueue
 
-class Malis:
+class rootPlayer:
+    def step(self, enemy):
+        pass
+        
+class Malis(rootPlayer):
     def __init__(self, health, damage, energy, tag, exploration_factor=1):
         self.health = health
         self.max_health = health

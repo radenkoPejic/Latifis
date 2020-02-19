@@ -48,9 +48,11 @@ class Igra():
         self.player1.queue.reset()
         #self.player2.queue.reset()
 
+    #f-ja za treniranje
     def main(self, episodes, ef):
         self.player1.exploration_rate = ef
         self.player1.exploration_delta = ef/episodes
+        #ako je drugi igrac malis, otkomentarisati ispod
         #self.player2.exploration_rate = ef
         #self.player2.exploration_delta = ef/episodes
         sum = 0
@@ -73,9 +75,11 @@ class Igra():
                     self.player1.train(state, self.winner, i, action)
                 else:
                     self.doBuffsEnemy()
+                    #ako je drugi igrac malis, otkomentarisati ispod
                     #self.player2.step(self.player1)
                     #action = self.player2.get_next_action(self.player2.prev_state)
                     #state = self.player2.take_action(action, self.player1)
+                    #za treniranje i drugog igraca istovremeno, otkomentarisati ispod
                     #self.player2.train(state, self.winner, i, action)
                 potez = 1-potez
                 self.game_winner()
@@ -86,15 +90,18 @@ class Igra():
             sum += i
             if self.player1.exploration_rate > 0:
                 self.player1.exploration_rate -= self.player1.exploration_delta
+            #ako je drugi igrac malis, otkomentarisati ispod
             #if self.player2.exploration_rate > 0:
             #    self.player2.exploration_rate -= self.player2.exploration_delta
             if episode%100 == 0:
                 self.player1.save_values(str(episode))
+                #ako je drugi igrac malis, otkomentarisati ispod
                 #self.player2.save_values(str(episode))
         print(won)
         print(sum//episodes)
         print(sum)
-        
+    
+    #igranje samo jedne partije, pomocna f-ja
     def play_game(self):
         self.init_game()
         potez = 0
@@ -114,6 +121,8 @@ class Igra():
             potez = 1-potez
             self.game_winner()
         print(self.winner+str(i))
+        
+    #provera valjanosti modela    
     def checkEF(self, episodes, Ef, dEf):
         #self.player2.initFuzzy(self.player1)
         #self.player1.initFuzzy(self.player2)
@@ -137,6 +146,7 @@ class Igra():
                     i+=1
                     if(potez == 0):
                         self.doBuffsPlayer()
+                        #self.player1.step(self.player2)
                         action = self.player1.get_next_action(self.player1.prev_state)
                         state = self.player1.take_action(action, self.player2)
                         #self.player1.stepFuzzy(self.player2)
@@ -168,5 +178,5 @@ def check_player():
     #game.checkEF(100, 0, 0.1)
     #game.play_game()
 
-####Za pokretanje odkomentarisati ovo ispod
+####Za pokretanje odkomentarisati ovo ispod, ili pokrenuti train.py
 #check_player()

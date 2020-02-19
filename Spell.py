@@ -249,7 +249,7 @@ class Long_MissHeal(BuffsSpell):
     def addBuff(self,duration, percent):
         self.buff = Buff.HealMissBuff(duration, percent)
     def description(self):
-        return "LongFullHeal\nHeal: "+ str(self.percent) +"% of maximum-current health\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) 
+        return "LongMissHeal\nHeal: "+ str(self.percent) +"% of maximum-current health\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) 
 
 class Flexible(BuffsSpell):
     def addBuff(self, duration, percent):
