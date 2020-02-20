@@ -185,13 +185,13 @@ class PlayerAttackGif1:
         
         if self.playerIndex == 0:
             self.enemyTexts = self.app.enemyTexts
-            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/fireball.gif"))]
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/player1attack.gif"))]
             self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         else:
             self.dx = -self.dx
             self.dy = -self.dy
             self.enemyTexts = self.app.playerTexts
-            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/fireball.gif"))]
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/player1attack.gif"))]
             self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
             self.x0 = self.x = app.rootWidth - x
         
@@ -201,7 +201,7 @@ class PlayerAttackGif1:
         self.enabled = False
         
         self.launchSound = pygame.mixer.Sound("resources/player1launch.wav")
-        self.hitSound = pygame.mixer.Sound("resources/player1hit.wav")
+        self.hitSound = pygame.mixer.Sound("resources/playerhit.wav")
         self.criticalHitSound = pygame.mixer.Sound("resources/criticalHit.wav")
         self.launchSound.set_volume(self.app.musicVolume/100)
         self.hitSound.set_volume(self.app.musicVolume/100)
@@ -272,10 +272,10 @@ class PlayerHealGif1:
         self.canvas = canvas
         
         if playerIndex == 0:
-            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/healing.gif"))]
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/player1heal.gif"))]
             self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         else:
-            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/healing.gif"))]
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/player1heal.gif"))]
             self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
 
         self.after = 33
@@ -317,10 +317,10 @@ class PlayerChargeGif1:
         self.canvas = canvas
         
         if playerIndex == 0:
-            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/charging.gif"))]
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/player1charge.gif"))]
             self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         else:
-            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/charging.gif"))]
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/player1charge.gif"))]
             self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
 
         self.after = 33
@@ -362,10 +362,10 @@ class PlayerStunGif1:
         self.canvas = canvas
         
         if playerIndex == 0:
-            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/stued.gif"))]
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/player1stun.gif"))]
             self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         else:
-            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/stued.gif"))]
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/player1stun.gif"))]
             self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
 
         self.after = int(67*afterTime/1500)
@@ -415,10 +415,10 @@ class PlayerDodgeGif1:
         self.canvas = canvas
         
         if playerIndex == 0:
-            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/playerDodge.gif"))]
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/player1dodge.gif"))]
             self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         else:
-            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/playerDodge.gif"))]
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/player1dodge.gif"))]
             self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
 
         self.after = 33

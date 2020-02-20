@@ -205,7 +205,7 @@ class PlayerAttackGif2:
         self.enabled = False
         
         self.launchSound = pygame.mixer.Sound("resources/player2launch.wav")
-        self.hitSound = pygame.mixer.Sound("resources/player1hit.wav")
+        self.hitSound = pygame.mixer.Sound("resources/playerhit.wav")
         self.criticalHitSound = pygame.mixer.Sound("resources/criticalHit.wav")
         self.launchSound.set_volume(self.app.musicVolume/100)
         self.hitSound.set_volume(self.app.musicVolume/100)

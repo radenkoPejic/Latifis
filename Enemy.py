@@ -107,7 +107,7 @@ class Enemy2(Enemy):
         self.spells = []
         self.buffs = []
         self.spells.append(Attack(0,0,50))
-        self.spells.append(Long_CurrHeal(9,0,10,2))
+        self.spells.append(Long_FullHeal(9,0,10,2))
         self.spells.append(Rewind(12,0,3))
         self.spells.append(WeakenAttack(7,0,100))
         #self.spells.append(Stun(7,0,4))

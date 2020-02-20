@@ -41,7 +41,7 @@ class PlayerStrategy1(PlayerStrategy): #Charizard Y - narandzasti
     #opis za prikaz u meniju
     descr = "Charizard Y\nPositive environments: Lava, Desert\nNegative environments: Ice, Forest"
     spellDescrs = ["BurnAttack\nDamage: 60, Critical: 10%, Energy: 150, Cooldown: 0\nAdditional effect: 70% chance of adding BurnBuff to enemy's buff list if spell\nis not dodged",
-    "LongFullHeal\nHeal: 10% of max health, Energy: 300, Cooldown: 6, Duration: 4\nAdditional effect: Adds FullBuff to players' buff list",
+    "LongMissHeal\nHeal: 10% of maximum-current health, Energy: 300, Cooldown: 6, Duration: 4\nAdditional effect: Adds FullBuff to players' buff list",
     "Charge\nBonus: 400, Energy: 0, Cooldown: 0",
     "Stun\nDuration: 3, Energy: 200, Cooldown: 7\nAdditional effect: Adds StunBuff to enemy's buff list if spell is not dodged"
     ]
@@ -69,21 +69,21 @@ class PlayerStrategy1(PlayerStrategy): #Charizard Y - narandzasti
     
     #postavljanje slika u kucicama za spellove playera
     def setPlayerSpellImages(self, app):
-        self.attackPhoto0 = Image.open("resources/p1attack0.jpg")
-        self.attackPhoto0 = self.attackPhoto0.resize((50, 50))
-        app.spellImages.append(ImageTk.PhotoImage(self.attackPhoto0))
+        self.attackPhoto = Image.open("resources/p1attack.jpg")
+        self.attackPhoto = self.attackPhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.attackPhoto))
         
-        self.healPhoto0 = Image.open("resources/p1heal0.jpg")
-        self.healPhoto0 = self.healPhoto0.resize((50, 50))
-        app.spellImages.append(ImageTk.PhotoImage(self.healPhoto0))
+        self.healPhoto = Image.open("resources/p1heal.jpg")
+        self.healPhoto = self.healPhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.healPhoto))
         
-        self.chargePhoto0 = Image.open("resources/p1charge0.png")
-        self.chargePhoto0 = self.chargePhoto0.resize((50, 50))
-        app.spellImages.append(ImageTk.PhotoImage(self.chargePhoto0))
+        self.chargePhoto = Image.open("resources/p1charge.png")
+        self.chargePhoto = self.chargePhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.chargePhoto))
 
-        self.stunPhoto0 = Image.open("resources/p1stun0.jpg")
-        self.stunPhoto0 = self.stunPhoto0.resize((50, 50))
-        app.spellImages.append(ImageTk.PhotoImage(self.stunPhoto0))
+        self.stunPhoto = Image.open("resources/p1stun.jpg")
+        self.stunPhoto = self.stunPhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.stunPhoto))
             
     def setEnvironmentBuff(self, tag, player):
         if (tag == "lava"):
@@ -134,21 +134,21 @@ class PlayerStrategy2(PlayerStrategy): #Charizard X - sivo-plavi
         
     #postavljanje slika u kucicama za spellove playera
     def setPlayerSpellImages(self, app):
-        self.attackPhoto0 = Image.open("resources/p2attack0.jpg")
-        self.attackPhoto0 = self.attackPhoto0.resize((50, 50))
-        app.spellImages.append(ImageTk.PhotoImage(self.attackPhoto0))
+        self.attackPhoto = Image.open("resources/p2attack.jpg")
+        self.attackPhoto = self.attackPhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.attackPhoto))
 
-        self.healPhoto0 = Image.open("resources/p2flex0.jpg")
-        self.healPhoto0 = self.healPhoto0.resize((50, 50))
-        app.spellImages.append(ImageTk.PhotoImage(self.healPhoto0))
+        self.healPhoto = Image.open("resources/p2flex.jpg")
+        self.healPhoto = self.healPhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.healPhoto))
         
-        self.chargePhoto0 = Image.open("resources/p2charge0.jpg")
-        self.chargePhoto0 = self.chargePhoto0.resize((50, 50))
-        app.spellImages.append(ImageTk.PhotoImage(self.chargePhoto0))
+        self.chargePhoto = Image.open("resources/p2charge.jpg")
+        self.chargePhoto = self.chargePhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.chargePhoto))
         
-        self.stunPhoto0 = Image.open("resources/p2drain0.jpg")
-        self.stunPhoto0 = self.stunPhoto0.resize((50, 50))
-        app.spellImages.append(ImageTk.PhotoImage(self.stunPhoto0))
+        self.stunPhoto = Image.open("resources/p2drain.jpg")
+        self.stunPhoto = self.stunPhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.stunPhoto))
             
     def setEnvironmentBuff(self, tag, player):
         if (tag == "forest"):
@@ -309,77 +309,38 @@ class EnemyStrategy4(PlayerStrategy): #Charizard X - sivo-plavi, flipovan
         app.dodgeGifs[1].stop()
 
 
-class Level():
+
+class ModeStrategy():
     def __init__(self, app):
         self.app = app
-    
-    def level(self):
+        
+    def playSpell(self):
         pass
-
-class OfflineLevel1(Level):
-    def level(self):
-        self.app.menuCanvas.pack_forget()
-        self.app.playerHealth = self.app.playerStartHealth = 1000
-        self.app.playerEnergy = self.app.playerStartEnergy = 1000
-        self.app.enemyHealth = self.app.enemyStartHealth = 2000
-        self.app.enemyEnergy = self.app.enemyStartEnergy = 20000
         
-        if (self.app.selectedPlayer == 0):
-            self.app.playerStrategy = PlayerStrategy1("Novi11100", 0.05)
-            self.app.playerWinnerGif = PlayerWinnerGif1(self.app.root, self.app.endGameCanvas, 0, 0, self.app)
-        else:
-            self.app.playerStrategy = PlayerStrategy2("dm3vsdm21000vse11000", 0.05)
-            self.app.playerWinnerGif = PlayerWinnerGif2(self.app.root, self.app.endGameCanvas, 0, 0, self.app)
         
-        self.app.enemyStrategy = EnemyStrategy1("Enemy1", 1)
+class PlayerModeStrategy(ModeStrategy):
+    def playSpell(self):
+        self.app.playerActionIndex = self.app.players[self.app.side].step(self.app.players[1-self.app.side])
+        return self.app.players[self.app.side].spells[self.app.playerActionIndex]
+  
+class EnemyModeStrategy(ModeStrategy):
+    def playSpell(self):
+        self.app.playerActionIndex = self.app.players[self.app.side].stepFuzzy(self.app.players[1-self.app.side])
+        return self.app.players[self.app.side].spells[self.app.playerActionIndex]
+  
+class HumanModeStrategy(ModeStrategy):
+    def playSpell(self):
+        #zaustavljanje cupkanja
+        if self.app.side == 0:
+            self.app.playerGif.pause()  
+        else: self.app.enemyGif.pause()
         
-        self.app.level = 1
-        self.app.startLevel()
-
-class OfflineLevel2(Level):
-    def level(self):
-        self.app.playerHealth = self.app.playerStartHealth = 1000
-        self.app.playerEnergy = self.app.playerStartEnergy = 1000
-        self.app.enemyHealth = self.app.enemyStartHealth = 1000
-        self.app.enemyEnergy = self.app.enemyStartEnergy = 20000
+        if self.app.playerActionIndex == -1: return None
+        self.app.players[self.app.side].take_action(self.app.playerActionIndex, self.app.players[1-self.app.side])
+        return self.app.players[self.app.side].spells[self.app.playerActionIndex]
         
-        self.app.enemyStrategy = EnemyStrategy2("Enemy2", 1)
-
-        self.app.level = 2
-        self.app.root.after(self.app.afterTime*3, self.app.playerWinnerGif.pause)
-        self.app.root.after(self.app.afterTime*3, self.app.startLevel)
-
-##obrisati
-class OnlineLevel1(Level):
-    def level(self):
-        self.app.menuCanvas.pack_forget()
-        self.app.playerHealth = self.app.playerStartHealth = 1000
-        self.app.playerEnergy = self.app.playerStartEnergy = 1000
-        self.app.enemyHealth = self.app.enemyStartHealth = 1000
-        self.app.enemyEnergy = self.app.enemyStartEnergy = 1000
-        
-        if (self.app.selectedPlayer == 0):
-            self.app.playerStrategy = PlayerStrategy1("Novi11100", 0.05)
-            self.app.playerWinnerGif = PlayerWinnerGif1(self.app.root, self.app.endGameCanvas, 0, 0, self.app)
-        else:
-            self.app.playerStrategy = PlayerStrategy2("dm3vsdm21000vse11000", 0.05)
-            self.app.playerWinnerGif = PlayerWinnerGif2(self.app.root, self.app.endGameCanvas, 0, 0, self.app)
-        
-        if random.random()<0.5:
-            self.app.enemyStrategy = EnemyStrategy3(DeepMalis2(self.app.enemyStartHealth,50,self.app.enemyStartEnergy, "Novi11100", 10.05))
-        else:
-            self.app.enemyStrategy = EnemyStrategy4(DeepMalis3(self.app.enemyStartHealth,50,self.app.enemyStartEnergy, "dm3vsdm21000vse11000", 10.05))
-        
-        self.app.level = 1
-        self.app.startLevel()
-
-class OfflineLevelStrategy():
-    def __init__(self, app):
-        app.levels = []
-        app.levels.append(OfflineLevel1(app))
-        app.levels.append(OfflineLevel2(app))
-      
-class OnlineLevelStrategy():
-    def __init__(self, app):
-        app.levels = []
-        app.levels.append(OnlineLevel1(app))  
+class OnlineModeStrategy(ModeStrategy):
+    def playSpell(self):
+        if self.app.playerActionIndex == -1: return None
+        return self.app.players[self.app.side].spells[self.app.playerActionIndex]
+    

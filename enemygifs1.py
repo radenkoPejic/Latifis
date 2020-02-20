@@ -87,7 +87,7 @@ class EnemyAttackGif1:
         
         self.sequence = []
         res = 0.06 #slike u gifu se uvecavaju
-        for img in ImageSequence.Iterator(Image.open("resources/enemyFire.gif")):
+        for img in ImageSequence.Iterator(Image.open("resources/enemy1attack.gif")):
             width, height = img.size
             image = img.resize((int(res*width), int(res*height)))
             self.sequence.append(ImageTk.PhotoImage(image)) 

@@ -46,8 +46,9 @@ class DeepMalis(Malis):
         return -1
     
     def step(self, enemy):
-        action = get_next_action(prev_state)
-        state = take_action(action, enemy)
+        action, done = self.get_next_action(self.prev_state)
+        state = self.take_action(action, enemy)
+        return action
     
     #f-ja nije koriscena, vec su njeni delovi integrisani u igra.py
     def update(self, state, winner, turnNum, action):
@@ -110,7 +111,7 @@ class DeepMalis2(DeepMalis):
         super().__init__(health, damage, energy, tag, exploration_factor)
         self.spells = []
         self.spells.append(Spell.BurnAttack(1,150,60))
-        self.spells.append(Spell.Long_FullHeal(6,300,10,4)) #promena
+        self.spells.append(Spell.Long_MissHeal(6,300,10,4)) #promena
         self.spells.append(Spell.Charge(0,0,400))
         self.spells.append(Spell.Stun(7,200,3))
         
