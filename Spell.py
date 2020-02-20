@@ -20,13 +20,6 @@ class Spell:
         raise NotImplementedError("Subclass must implement abstract method")
     def cast2(self,obj1,obj2=None):
         raise NotImplementedError("Subclass must implement abstract method")
-    def addOrReplaceBuff(self, c, newBuff):
-        for buff in c.buffs:
-            if(type(buff)==type(newBuff)):
-                #c.buffs.remove(buff)
-                buff.curr_cooldown = newBuff.cooldown
-                return
-        c.buffs.append(newBuff)
     def description(self):
         pass
 
@@ -128,7 +121,7 @@ class EnergyAttack(AttackSpell):
 class BurnAttack(Attack):
     def addBuffs(self, c1, c2):
         if(random.random()<0.70):
-            self.addOrReplaceBuff(c2, Buff.BurnBuff(3,3))
+            Buff.Buff.addOrReplaceBuff(c2, Buff.BurnBuff(3,3))
             #c2.buffs.append(Buff.BurnBuff(3,3))
     def description(self):
         return super().description()+"\n70% chance of adding BurnBuff to other player"  
@@ -136,7 +129,7 @@ class BurnAttack(Attack):
 class WeakenAttack(Attack):
     def addBuffs(self, c1, c2):
         if(random.random()<0.70):
-            self.addOrReplaceBuff(c2, Buff.WeakenBuff(2, 40))
+            Buff.Buff.addOrReplaceBuff(c2, Buff.WeakenBuff(2, 40))
             #c2.buffs.append(Buff.WeakenBuff(2,40))
     def description(self):
         return super().description()+"\n70% chance of adding WeakenBuff to other player"    
@@ -144,7 +137,7 @@ class WeakenAttack(Attack):
 class DrainAttack(Attack):
     def addBuffs(self, c1, c2):
         if(random.random()<0.9):
-            self.addOrReplaceBuff(c2, Buff.DrainBuff(2,7))
+            Buff.Buff.addOrReplaceBuff(c2, Buff.DrainBuff(2,7))
             #c2.buffs.append(Buff.DrainBuff(2,7))
     def description(self):
         return super().description()+"\n90% chance of adding DrainBuff to other player" 
@@ -206,7 +199,7 @@ class Charge(DefenseSpell):
 class ProtectionCharge(Charge):
     def addBuffs(self, c1, c2):
         if(random.random()<0.70):
-            self.addOrReplaceBuff(c1, Buff.ProtectionBuff(1,20))
+            Buff.Buff.addOrReplaceBuff(c1, Buff.ProtectionBuff(1,20))
             #c1.buffs.append(Buff.ProtectionBuff(1,20))
     def description(self):
         return super().description()+"\n70% chance of adding ProtectionBuff to itself"  
@@ -225,7 +218,7 @@ class BuffsSpell(Spell):
                 self.curr_cooldown = self.cooldown
                 c1.energy -= self.energy
                 #c1.buffs.append(self.buff)
-                self.addOrReplaceBuff(c1, self.buff)
+                Buff.Buff.addOrReplaceBuff(c1, self.buff)
         else:
             raise Exception()
     def cast2(self, c1, c2=None):
@@ -282,7 +275,7 @@ class Stun(Spell):
                 c1.energy -= self.energy
                 if random.random() > c2.dodge:
                     #c2.buffs.append(self.buff)
-                    self.addOrReplaceBuff(c2, self.buff)
+                    Buff.Buff.addOrReplaceBuff(c2, self.buff)
                     self.dodged = False
                 else:
                     self.dodged = True

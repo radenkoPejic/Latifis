@@ -511,11 +511,11 @@ class Application():
         self.spellCanvasText = self.spellCanvas.create_text(73, 22, anchor = NW, text = "Spells:", font = ("Purisa", 17), fill = "white")
         
         self.playerClockPhoto = Image.open("resources/clock.png")
-        self.playerClockPhoto = self.playerClockPhoto.resize((40, 60))
+        self.playerClockPhoto = self.playerClockPhoto.resize((34, 60))
         self.playerClockImage = ImageTk.PhotoImage(self.playerClockPhoto)
         self.spellCanvas.create_image(15, 6, image = self.playerClockImage, anchor = NW)
         
-        self.playerClockText = self.spellCanvas.create_text(35, 36, anchor = CENTER, text = "", font = ("Purisa", 25, "bold"), fill = "red")
+        self.playerClockText = self.spellCanvas.create_text(32, 36, anchor = CENTER, text = "", font = ("Purisa", 25, "bold"), fill = "red")
         
         self.playerBuffImages = []
         self.playerBuffTexts = []

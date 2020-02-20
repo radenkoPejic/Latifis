@@ -15,6 +15,13 @@ class Buff:
         self.curr_cooldown = self.cooldown
     def description(self):
         pass
+    #staticka
+    def addOrReplaceBuff(c, newBuff):   
+        for buff in c.buffs:
+            if(type(buff)==type(newBuff)):
+                buff.curr_cooldown = max(buff.curr_cooldown, newBuff.cooldown)
+                return
+        c.buffs.append(newBuff)      
         
 class HealBuff(Buff):
     def __init__(self, cooldown, percent):
@@ -183,17 +190,7 @@ class DrainBuff(Buff):
         super().restore(c1,c2)
     def description(self):
         return self.__class__.__name__ + "\n"+ str(self.percent)  + "% of health transferred to other player"       
-
-
-
-def addOrReplaceBuff(c, newBuff):   
-    for buff in c.buffs:
-        if(type(buff)==type(newBuff)):
-            c.buffs.remove(buff)
-            break
-    c.buffs.append(newBuff)     
-        
-        
+  
         
 class EnvironmentBuff(Buff):
     def __init__(self, cooldown):
@@ -301,7 +298,7 @@ class ForestMinus(EnvironmentBuff):
         #if(random.random()<0.03):
         if c1.health!=c1.max_health and c2.stunned==False \
         and abs(c1.health/c1.max_health - c2.health/c2.max_health)<0.015:
-            addOrReplaceBuff(c1, StunBuff(1))
+            Buff.addOrReplaceBuff(c1, StunBuff(1))
     def description(self):
         return self.__class__.__name__ + "\n3% chance of adding StunBuff to itself"       
 

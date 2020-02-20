@@ -26,6 +26,7 @@ class LevelE1(Level):
         
         self.app.enemyStrategy = EnemyStrategy1("Enemy1", 1)
         
+        self.app.firstPlayer = 0
         self.app.gameStrategy.level = 1
         self.app.startGame()
 
@@ -90,9 +91,10 @@ class LevelP1(Level):
             
         self.app.players = []
         self.app.playerStrategy.setPlayer(self.app)
-        self.app.enemyStrategy = EnemyStrategy3(self.app, DeepMalis2(self.app.enemyStartHealth,50,self.app.enemyStartEnergy, "Novi11100", 0.05))
+        self.app.enemyStrategy = EnemyStrategy4(self.app, DeepMalis3(self.app.enemyStartHealth,50,self.app.enemyStartEnergy, "dm3vsdm21000vse11000", 0.05))
         self.app.players[1].load_model()
         
+        self.app.firstPlayer = 0
         self.app.gameStrategy.level = 1
         self.app.startGame()
 
@@ -105,7 +107,7 @@ class LevelP2(Level):
         
         self.app.players = []
         self.app.playerStrategy.setPlayer(self.app)
-        self.app.enemyStrategy = EnemyStrategy4(self.app, DeepMalis3(self.app.enemyStartHealth,50,self.app.enemyStartEnergy, "dm3vsdm21000vse11000", 0.05))
+        self.app.enemyStrategy = EnemyStrategy3(self.app, DeepMalis2(self.app.enemyStartHealth,50,self.app.enemyStartEnergy, "Novi11100", 0.05))
         self.app.players[1].load_model()
 
         self.app.gameStrategy.level = 2
