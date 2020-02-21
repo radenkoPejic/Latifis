@@ -31,6 +31,9 @@ class PlayerStrategy:
     #postavljanje environment buffova za igraca
     def setEnvironmentBuff(self, tag, player):
         pass
+        
+    def getTypeOfPlayer(self):
+        pass
     
     #kraj prikaza igraca
     def stop(self):
@@ -46,10 +49,16 @@ class PlayerStrategy1(PlayerStrategy): #Charizard Y - narandzasti
     "Stun\nDuration: 3, Energy: 200, Cooldown: 7\nAdditional effect: Adds StunBuff to enemy's buff list if spell is not dodged"
     ]
     
-    def setPlayer(self, app, toLoad = 1):
-        app.players.append(DeepMalis2(app.playerStartHealth,50,app.playerStartEnergy, self.tag, self.explorationFactor))
-        if toLoad == 1:
+    def setPlayer(self, app, toLoad = True, toSet = False):
+        if toSet == False: return
+        app.playerHealth = app.playerStartHealth = 1000
+        app.playerEnergy = app.playerStartEnergy = 1000
+        app.players[0] = DeepMalis2(app.playerStartHealth,50,app.playerStartEnergy, self.tag, self.explorationFactor)
+        if toLoad == True:
             app.players[0].load_model()
+            
+    def setPlayerWinnerGif(self, app):
+        app.playerWinnerGif = PlayerWinnerGif1(app.root, app.endGameCanvas, 0, 0, app)
         
     def setPlayerTexts(self, app):
         app.createTexts(app.playerTexts, 183, 194)
@@ -95,6 +104,9 @@ class PlayerStrategy1(PlayerStrategy): #Charizard Y - narandzasti
         elif (tag == "forest"):
             player.buffs.append(ForestMinus())
     
+    def getTypeOfPlayer(self):
+        return "player"
+    
     def stop(self, app):
         app.playerGif.stop()
         for gif in app.playerSpellGifs:
@@ -111,10 +123,16 @@ class PlayerStrategy2(PlayerStrategy): #Charizard X - sivo-plavi
     "DrainAttack\nDamage: 100, Energy: 400, Cooldown: 5\nAdditional effect: 90% chance of adding DrainBuff to enemy's buff list if spell\nis not dodged"
     ]
     
-    def setPlayer(self, app, toLoad = 1):
-        app.players.append(DeepMalis3(app.playerStartHealth,50,app.playerStartEnergy, self.tag, self.explorationFactor))
-        if toLoad == 1:
+    def setPlayer(self, app, toLoad = True, toSet = True):
+        if toSet == False: return
+        app.playerHealth = app.playerStartHealth = 1000
+        app.playerEnergy = app.playerStartEnergy = 1000
+        app.players[0] = DeepMalis3(app.playerStartHealth,50,app.playerStartEnergy, self.tag, self.explorationFactor)
+        if toLoad == True:
             app.players[0].load_model()
+    
+    def setPlayerWinnerGif(self, app):
+        app.playerWinnerGif = PlayerWinnerGif2(app.root, app.endGameCanvas, 0, 0, app)
         
     def setPlayerTexts(self, app):
         app.createTexts(app.playerTexts, 183, 194)
@@ -156,68 +174,123 @@ class PlayerStrategy2(PlayerStrategy): #Charizard X - sivo-plavi
         elif (tag == "lava"):
             player.buffs.append(LavaMinus())
     
+    def getTypeOfPlayer(self):
+        return "player"
+    
     def stop(self, app):
         app.playerGif.stop()
         for gif in app.playerSpellGifs:
             gif.stop()
         app.dodgeGifs[0].stop()
         
-
-class EnemyStrategy1(PlayerStrategy): #Enemy1 - tamni
+class PlayerStrategy3(PlayerStrategy): #Enemy 1 - tamni, flipovan
+    #opis za prikaz u meniju
     
-    def setPlayer(self, app):
-        app.players.append(Enemy(app.enemyStartHealth,12,app.enemyStartEnergy, self.tag, self.explorationFactor))
+    def setPlayer(self, app, toLoad = True, toSet = False):
+        if toSet == False: return
+        app.playerHealth = app.playerStartHealth = 2000
+        app.playerEnergy = app.playerStartEnergy = 20000
+        app.players[0] = Enemy(app.playerStartHealth,12,app.playerStartEnergy, self.tag, self.explorationFactor)
+            
+    def setPlayerWinnerGif(self, app):
+        app.playerWinnerGif = PlayerWinnerGif1(app.root, app.endGameCanvas, 0, 0, app)
         
     def setPlayerTexts(self, app):
-        app.createTexts(app.enemyTexts, 420, 95)
-        app.criticalImages.append(app.backgroundCanvas.create_image(450, 45, image = app.criticalImage, anchor = NW, state = "hidden"))
+        app.createTexts(app.playerTexts, app.rootWidth - 420, 95, NE)
+        app.criticalImages.append(app.backgroundCanvas.create_image(app.rootWidth - 450, 45, image = app.criticalImage, anchor = NE, state = "hidden"))
     
     def setPlayerGif(self, app):
-        app.enemyGif = EnemyGif1(app.root, app.backgroundCanvas, 800, 342, app)
-            
+        app.playerGif = EnemyGif1(app.root, app.backgroundCanvas, 800, 342, app, 0)
+        
     def setPlayerSpellGifs(self, app):
-        app.enemySpellGifs.append(EnemyAttackGif1(app.root, app.backgroundCanvas, 453, 232, app.afterTime, app, 0))
-        app.enemySpellGifs.append(EnemyEnergyAttackGif1(app.root, app.backgroundCanvas, 373, 342, app.afterTime, app, 1))
-        app.enemySpellGifs.append(EnemyBurnAttackGif1(app.root, app.backgroundCanvas, 553, 442, app.afterTime, app, 2))
-        app.enemySpellGifs.append(EnemyWeakenAttackGif1(app.root, app.backgroundCanvas, 373, 342, app.afterTime, app, 3))
+        app.playerSpellGifs.append(EnemyAttackGif1(app.root, app.backgroundCanvas, 453, 232, app.afterTime, app, 0, 0))
+        app.playerSpellGifs.append(EnemyEnergyAttackGif1(app.root, app.backgroundCanvas, 373, 342, app.afterTime, app, 1, 0))
+        app.playerSpellGifs.append(EnemyBurnAttackGif1(app.root, app.backgroundCanvas, 553, 442, app.afterTime, app, 2, 0))
+        app.playerSpellGifs.append(EnemyWeakenAttackGif1(app.root, app.backgroundCanvas, 373, 342, app.afterTime, app, 3, 0))
     
     def setPlayerDodgeGif(self, app):
-        app.dodgeGifs.append(EnemyDodgeGif1(app.root, app.backgroundCanvas, 680, 350, app))
+        app.dodgeGifs.append(EnemyDodgeGif1(app.root, app.backgroundCanvas, 680, 350, app, 0))
     
+    #postavljanje slika u kucicama za spellove playera
+    def setPlayerSpellImages(self, app):
+        self.attackPhoto = Image.open("resources/e1attack.jpg")
+        self.attackPhoto = self.attackPhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.attackPhoto))
+        
+        self.healPhoto = Image.open("resources/e1energy.jpg")
+        self.healPhoto = self.healPhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.healPhoto))
+        
+        self.chargePhoto = Image.open("resources/e1burn.jpg")
+        self.chargePhoto = self.chargePhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.chargePhoto))
+
+        self.stunPhoto = Image.open("resources/e1weaken.jpg")
+        self.stunPhoto = self.stunPhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.stunPhoto))
+            
     def setEnvironmentBuff(self, tag, player):
         if (tag == "lava"):
             player.buffs.append(LavaPlus())
         elif (tag == "ice"):
             player.buffs.append(IceMinus())
+            
+    def getTypeOfPlayer(self):
+        return "enemy"
     
     def stop(self, app):
-        app.enemyGif.stop()
-        for gif in app.enemySpellGifs:
+        app.playerGif.stop()
+        for gif in app.playerSpellGifs:
             gif.stop()
-        app.dodgeGifs[1].stop()
+        app.dodgeGifs[0].stop()
         
         
-class EnemyStrategy2(PlayerStrategy): #Enemy2 - plavi
+class PlayerStrategy4(PlayerStrategy): #Enemy 2 - plavi, flipovan
+    #opis za prikaz u meniju
     
-    def setPlayer(self, app):
-        app.players.append(Enemy2(app.enemyStartHealth,12,app.enemyStartEnergy, self.tag, self.explorationFactor))
-      
+    def setPlayer(self, app, toLoad = True, toSet = False):
+        if toSet == False: return
+        app.playerHealth = app.playerStartHealth = 1000
+        app.playerEnergy = app.playerStartEnergy = 20000
+        app.players[0] = Enemy2(app.playerStartHealth,12,app.playerStartEnergy, self.tag, self.explorationFactor)
+            
+    def setPlayerWinnerGif(self, app):
+        app.playerWinnerGif = PlayerWinnerGif1(app.root, app.endGameCanvas, 0, 0, app)
+        
     def setPlayerTexts(self, app):
-        app.createTexts(app.enemyTexts, 420, 95)
-        app.criticalImages.append(app.backgroundCanvas.create_image(450, 45, image = app.criticalImage, anchor = NW, state = "hidden"))     
+        app.createTexts(app.playerTexts, app.rootWidth - 420, 95, NE)
+        app.criticalImages.append(app.backgroundCanvas.create_image(app.rootWidth - 450, 45, image = app.criticalImage, anchor = NE, state = "hidden"))
     
     def setPlayerGif(self, app):
-        app.enemyGif = EnemyGif2(app.root, app.backgroundCanvas, 800, 342, app)       
+        app.playerGif = EnemyGif2(app.root, app.backgroundCanvas, 800, 342, app, 0)
         
     def setPlayerSpellGifs(self, app):
-        app.enemySpellGifs.append(EnemyAttackGif2(app.root, app.backgroundCanvas, 583, 392, app, 0))
-        app.enemySpellGifs.append(EnemyHealGif2(app.root, app.backgroundCanvas, 750, 457, app))
-        app.enemySpellGifs.append(EnemyRewindGif2(app.root, app.backgroundCanvas, 750, 400, app))
-        app.enemySpellGifs.append(EnemyWeakenAttackGif2(app.root, app.backgroundCanvas, 530, 407, app.afterTime, app, 3))
+        app.playerSpellGifs.append(EnemyAttackGif2(app.root, app.backgroundCanvas, 583, 392, app, 0, 0))
+        app.playerSpellGifs.append(EnemyHealGif2(app.root, app.backgroundCanvas, 750, 457, app, 0))
+        app.playerSpellGifs.append(EnemyRewindGif2(app.root, app.backgroundCanvas, 750, 400, app, 0))
+        app.playerSpellGifs.append(EnemyWeakenAttackGif2(app.root, app.backgroundCanvas, 530, 407, app.afterTime, app, 3, 0))
     
     def setPlayerDodgeGif(self, app):
-        app.dodgeGifs.append(EnemyDodgeGif2(app.root, app.backgroundCanvas, 680, 350, app))
+        app.dodgeGifs.append(EnemyDodgeGif2(app.root, app.backgroundCanvas, 680, 350, app, 0))
     
+    #postavljanje slika u kucicama za spellove playera
+    def setPlayerSpellImages(self, app):
+        self.attackPhoto = Image.open("resources/e2attack.jpg")
+        self.attackPhoto = self.attackPhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.attackPhoto))
+        
+        self.healPhoto = Image.open("resources/e2heal.jpg")
+        self.healPhoto = self.healPhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.healPhoto))
+        
+        self.chargePhoto = Image.open("resources/e2rewind.jpg")
+        self.chargePhoto = self.chargePhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.chargePhoto))
+
+        self.stunPhoto = Image.open("resources/e2weaken.jpg")
+        self.stunPhoto = self.stunPhoto.resize((50, 50))
+        app.spellImages.append(ImageTk.PhotoImage(self.stunPhoto))
+            
     def setEnvironmentBuff(self, tag, player):
         if (tag == "ice"):
             player.buffs.append(IcePlus())
@@ -225,20 +298,34 @@ class EnemyStrategy2(PlayerStrategy): #Enemy2 - plavi
             player.buffs.append(LavaMinus())
         elif (tag == "desert"):
             player.buffs.append(DesertMinus())
+            
+    def getTypeOfPlayer(self):
+        return "enemy"
     
     def stop(self, app):
-        app.enemyGif.stop()
-        for gif in app.enemySpellGifs:
+        app.playerGif.stop()
+        for gif in app.playerSpellGifs:
             gif.stop()
-        app.dodgeGifs[1].stop()
-
-
-class EnemyStrategy3(PlayerStrategy): #Charizard Y - narandzasti, flipovan 
-    def __init__(self, app, player2):
-        super().__init__("", 1)
-        app.players.append(player2)
-    
+        app.dodgeGifs[0].stop()        
         
+
+class EnemyStrategy1(PlayerStrategy): #Charizard Y - narandzasti, flipovan 
+            
+    def addPlayer2(self, app, player2):
+        app.players[1] = player2
+    
+    def setPlayer(self, app, offline = True):
+        if offline == True:
+            app.enemyHealth = app.enemyStartHealth = 1000
+            app.enemyEnergy = app.enemyStartEnergy = 1000
+            app.players[1] = DeepMalis2(app.enemyStartHealth,50,app.enemyStartHealth, self.tag, self.explorationFactor)
+            app.players[1].load_model()
+        else:
+            print(app.players)
+            app.enemyHealth = app.enemyStartHealth = app.players[1].max_health
+            app.enemyEnergy = app.enemyStartEnergy = app.players[1].max_energy
+            
+    
     def setPlayerTexts(self, app):
         app.createTexts(app.enemyTexts, app.rootWidth - 183, 194, NE)
         app.criticalImages.append(app.backgroundCanvas.create_image(app.rootWidth - 133, 132, image = app.criticalImage, anchor = NE, state = "hidden"))
@@ -264,6 +351,9 @@ class EnemyStrategy3(PlayerStrategy): #Charizard Y - narandzasti, flipovan
             player.buffs.append(IceMinus())
         elif (tag == "forest"):
             player.buffs.append(ForestMinus())
+            
+    def getTypeOfPlayer(self):
+        return "player"
     
     def stop(self, app):
         app.enemyGif.stop()
@@ -272,13 +362,21 @@ class EnemyStrategy3(PlayerStrategy): #Charizard Y - narandzasti, flipovan
         app.dodgeGifs[1].stop()
         
 
-class EnemyStrategy4(PlayerStrategy): #Charizard X - sivo-plavi, flipovan
-    def __init__(self, app, player2):
-        super().__init__("", 1)
-        app.players.append(player2)
+class EnemyStrategy2(PlayerStrategy): #Charizard X - sivo-plavi, flipovan
 
-    def setPlayer(self, app):
-        return
+    def addPlayer2(self, app, player2):
+        app.players[1] = player2
+    
+    def setPlayer(self, app, offline = True):
+        print(offline)
+        if offline == True:
+            app.enemyHealth = app.enemyStartHealth = 1000
+            app.enemyEnergy = app.enemyStartEnergy = 1000
+            app.players[1] = DeepMalis3(app.enemyStartHealth,50,app.enemyStartHealth, self.tag, self.explorationFactor)
+            app.players[1].load_model()
+        else:
+            app.enemyHealth = app.enemyStartHealth = app.players[1].max_health
+            app.enemyEnergy = app.enemyStartEnergy = app.players[1].max_energy
         
     def setPlayerTexts(self, app):
         app.createTexts(app.enemyTexts, app.rootWidth - 183, 194, NE)
@@ -302,11 +400,110 @@ class EnemyStrategy4(PlayerStrategy): #Charizard X - sivo-plavi, flipovan
         elif (tag == "lava"):
             player.buffs.append(LavaMinus())
     
+    def getTypeOfPlayer(self):
+        return "player"
+    
+    def stop(self, app):
+        app.enemyGif.stop()
+        for gif in app.enemySpellGifs:
+            gif.stop()
+        app.dodgeGifs[1].stop()        
+        
+
+class EnemyStrategy3(PlayerStrategy): #Enemy1 - tamni
+
+    def addPlayer2(self, app, player2):
+        app.players[1] = player2
+    
+    def setPlayer(self, app, offline = True):
+        if offline == True:
+            app.enemyHealth = app.enemyStartHealth = 2000
+            app.enemyEnergy = app.enemyStartEnergy = 20000
+            app.players[1] = Enemy(app.enemyStartHealth,12,app.enemyStartEnergy, self.tag, self.explorationFactor)
+        else:
+            app.enemyHealth = app.enemyStartHealth = app.players[1].max_health
+            app.enemyEnergy = app.enemyStartEnergy = app.players[1].max_energy
+        
+    def setPlayerTexts(self, app):
+        app.createTexts(app.enemyTexts, 420, 95)
+        app.criticalImages.append(app.backgroundCanvas.create_image(450, 45, image = app.criticalImage, anchor = NW, state = "hidden"))
+    
+    def setPlayerGif(self, app):
+        app.enemyGif = EnemyGif1(app.root, app.backgroundCanvas, 800, 342, app)
+            
+    def setPlayerSpellGifs(self, app):
+        app.enemySpellGifs.append(EnemyAttackGif1(app.root, app.backgroundCanvas, 453, 232, app.afterTime, app, 0))
+        app.enemySpellGifs.append(EnemyEnergyAttackGif1(app.root, app.backgroundCanvas, 373, 342, app.afterTime, app, 1))
+        app.enemySpellGifs.append(EnemyBurnAttackGif1(app.root, app.backgroundCanvas, 553, 442, app.afterTime, app, 2))
+        app.enemySpellGifs.append(EnemyWeakenAttackGif1(app.root, app.backgroundCanvas, 373, 342, app.afterTime, app, 3))
+    
+    def setPlayerDodgeGif(self, app):
+        app.dodgeGifs.append(EnemyDodgeGif1(app.root, app.backgroundCanvas, 680, 350, app))
+    
+    def setEnvironmentBuff(self, tag, player):
+        if (tag == "lava"):
+            player.buffs.append(LavaPlus())
+        elif (tag == "ice"):
+            player.buffs.append(IceMinus())
+            
+    def getTypeOfPlayer(self):
+        return "enemy"
+    
     def stop(self, app):
         app.enemyGif.stop()
         for gif in app.enemySpellGifs:
             gif.stop()
         app.dodgeGifs[1].stop()
+        
+        
+class EnemyStrategy4(PlayerStrategy): #Enemy2 - plavi
+
+    def addPlayer2(self, app, player2):
+        app.players[1] = player2
+    
+    def setPlayer(self, app, offline = True):
+        if offline == True:
+            app.enemyHealth = app.enemyStartHealth = 1000
+            app.enemyEnergy = app.enemyStartEnergy = 20000
+            app.players[1] = Enemy2(app.enemyStartHealth,12,app.enemyStartEnergy, self.tag, self.explorationFactor)
+        else:
+            app.enemyHealth = app.enemyStartHealth = app.players[1].max_health
+            app.enemyEnergy = app.enemyStartEnergy = app.players[1].max_energy
+      
+    def setPlayerTexts(self, app):
+        app.createTexts(app.enemyTexts, 420, 95)
+        app.criticalImages.append(app.backgroundCanvas.create_image(450, 45, image = app.criticalImage, anchor = NW, state = "hidden"))     
+    
+    def setPlayerGif(self, app):
+        app.enemyGif = EnemyGif2(app.root, app.backgroundCanvas, 800, 342, app)       
+        
+    def setPlayerSpellGifs(self, app):
+        app.enemySpellGifs.append(EnemyAttackGif2(app.root, app.backgroundCanvas, 583, 392, app, 0))
+        app.enemySpellGifs.append(EnemyHealGif2(app.root, app.backgroundCanvas, 750, 457, app))
+        app.enemySpellGifs.append(EnemyRewindGif2(app.root, app.backgroundCanvas, 750, 400, app))
+        app.enemySpellGifs.append(EnemyWeakenAttackGif2(app.root, app.backgroundCanvas, 530, 407, app.afterTime, app, 3))
+    
+    def setPlayerDodgeGif(self, app):
+        app.dodgeGifs.append(EnemyDodgeGif2(app.root, app.backgroundCanvas, 680, 350, app))
+    
+    def setEnvironmentBuff(self, tag, player):
+        if (tag == "ice"):
+            player.buffs.append(IcePlus())
+        elif (tag == "lava"):
+            player.buffs.append(LavaMinus())
+        elif (tag == "desert"):
+            player.buffs.append(DesertMinus())
+            
+    def getTypeOfPlayer(self):
+        return "enemy"
+    
+    def stop(self, app):
+        app.enemyGif.stop()
+        for gif in app.enemySpellGifs:
+            gif.stop()
+        app.dodgeGifs[1].stop()
+
+
 
 
 
@@ -335,9 +532,15 @@ class HumanModeStrategy(ModeStrategy):
             self.app.playerGif.pause()  
         else: self.app.enemyGif.pause()
         
-        if self.app.playerActionIndex == -1: return None
-        self.app.players[self.app.side].take_action(self.app.playerActionIndex, self.app.players[1-self.app.side])
-        return self.app.players[self.app.side].spells[self.app.playerActionIndex]
+        #ako nije stigao da odigra potez smanjujemo cooldownove i vracamo None
+        if self.app.playerActionIndex == -1:
+            for carolija in self.app.players[self.app.side].spells:
+                carolija.reduceCooldown()
+            return None
+        #odigravamo potez
+        else:
+            self.app.players[self.app.side].take_action(self.app.playerActionIndex, self.app.players[1-self.app.side])
+            return self.app.players[self.app.side].spells[self.app.playerActionIndex]
         
 class OnlineModeStrategy(ModeStrategy):
     def playSpell(self):

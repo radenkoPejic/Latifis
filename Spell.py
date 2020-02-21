@@ -117,6 +117,10 @@ class EnergyAttack(AttackSpell):
         else:
             print('puca ovde')
             raise Exception()
+            
+    def description(self):
+        return self.__class__.__name__ + "\nDamage: " + str(self.damage) + "\nEnergy: " + str(self.energy) + "\nCooldown: " + str(self.cooldown)
+
 
 class BurnAttack(Attack):
     def addBuffs(self, c1, c2):
@@ -300,7 +304,7 @@ class Rewind(Spell):
                 self.curr_cooldown = self.cooldown
                 c1.energy -= self.energy
                 for spell in c1.spells:
-                    spell.curr_cooldown -= self.duration
+                    spell.curr_cooldown -= self.duration##da li treba na 0 ili smanjuje za duration stvarno?
                     if(spell.curr_cooldown<0):
                         spell.curr_cooldown = 0
         else:

@@ -5,6 +5,13 @@ class rootPlayer:
     def step(self, enemy):
         pass
         
+            
+    def take_action(self, action, e):
+        self.spells[action].cast(self,e)
+        for carolija in self.spells:
+            carolija.reduceCooldown()
+        return [self.selfState(), e.selfState()]
+        
 class Malis(rootPlayer):
     def __init__(self, health, damage, energy, tag, exploration_factor=1):
         self.health = health

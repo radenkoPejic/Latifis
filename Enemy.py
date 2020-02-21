@@ -23,6 +23,7 @@ class Enemy(rootPlayer):
         self.spells.append(EnergyAttack(5,0,250))
         self.spells.append(BurnAttack(7,0,100))
         self.spells.append(WeakenAttack(6,0,150))
+        self.alwaysCastableSpellIndex = 0
         ###
         self.tag = tag
         self.exp_factor = exploration_factor
@@ -110,6 +111,7 @@ class Enemy2(Enemy):
         self.spells.append(Long_FullHeal(9,0,10,2))
         self.spells.append(Rewind(12,0,3))
         self.spells.append(WeakenAttack(7,0,100))
+        self.alwaysCastableSpellIndex = 0
         #self.spells.append(Stun(7,0,4))
         
     #Obican step koriscen za treniranje     

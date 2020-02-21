@@ -12,19 +12,10 @@ class Level():
 
 class LevelE1(Level):
     def setLevel(self):
-        self.app.playerHealth = self.app.playerStartHealth = 1000
-        self.app.playerEnergy = self.app.playerStartEnergy = 1000
-        self.app.enemyHealth = self.app.enemyStartHealth = 2000
-        self.app.enemyEnergy = self.app.enemyStartEnergy = 20000
+        self.app.players = [None, None]
+        self.app.playerStrategy = self.app.playerStrategies[self.app.selectedPlayer]
         
-        if (self.app.selectedPlayer == 0):
-            self.app.playerStrategy = PlayerStrategy1("Novi11100", 0.05)
-            self.app.playerWinnerGif = PlayerWinnerGif1(self.app.root, self.app.endGameCanvas, 0, 0, self.app)
-        else:
-            self.app.playerStrategy = PlayerStrategy2("dm3vsdm21000vse11000", 0.05)
-            self.app.playerWinnerGif = PlayerWinnerGif2(self.app.root, self.app.endGameCanvas, 0, 0, self.app)
-        
-        self.app.enemyStrategy = EnemyStrategy1("Enemy1", 1)
+        self.app.enemyStrategy = self.app.enemyStrategies[2]
         
         self.app.firstPlayer = 0
         self.app.gameStrategy.level = 1
@@ -32,12 +23,8 @@ class LevelE1(Level):
 
 class LevelE2(Level):
     def setLevel(self):
-        self.app.playerHealth = self.app.playerStartHealth = 1000
-        self.app.playerEnergy = self.app.playerStartEnergy = 1000
-        self.app.enemyHealth = self.app.enemyStartHealth = 1000
-        self.app.enemyEnergy = self.app.enemyStartEnergy = 20000
-        
-        self.app.enemyStrategy = EnemyStrategy2("Enemy2", 1)
+        self.app.players = [None, None]
+        self.app.enemyStrategy = self.app.enemyStrategies[3]
 
         self.app.gameStrategy.level = 2
         self.app.root.after(self.app.afterTime*3, self.app.playerWinnerGif.pause)
@@ -77,22 +64,10 @@ class OfflineGameStrategyE(GameStrategy):
         
 class LevelP1(Level):
     def setLevel(self):
-        self.app.playerHealth = self.app.playerStartHealth = 1000
-        self.app.playerEnergy = self.app.playerStartEnergy = 1000
-        self.app.enemyHealth = self.app.enemyStartHealth = 1000
-        self.app.enemyEnergy = self.app.enemyStartEnergy = 1000
+        self.app.players = [None, None]
+        self.app.playerStrategy = self.app.playerStrategies[self.app.selectedPlayer]
         
-        if (self.app.selectedPlayer == 0):
-            self.app.playerStrategy = PlayerStrategy1("Novi11100", 0.05)
-            self.app.playerWinnerGif = PlayerWinnerGif1(self.app.root, self.app.endGameCanvas, 0, 0, self.app)
-        else:
-            self.app.playerStrategy = PlayerStrategy2("dm3vsdm21000vse11000", 0.05)
-            self.app.playerWinnerGif = PlayerWinnerGif2(self.app.root, self.app.endGameCanvas, 0, 0, self.app)
-            
-        self.app.players = []
-        self.app.playerStrategy.setPlayer(self.app)
-        self.app.enemyStrategy = EnemyStrategy4(self.app, DeepMalis3(self.app.enemyStartHealth,50,self.app.enemyStartEnergy, "dm3vsdm21000vse11000", 0.05))
-        self.app.players[1].load_model()
+        self.app.enemyStrategy = self.app.enemyStrategies[1]
         
         self.app.firstPlayer = 0
         self.app.gameStrategy.level = 1
@@ -100,15 +75,9 @@ class LevelP1(Level):
 
 class LevelP2(Level):
     def setLevel(self):
-        self.app.playerHealth = self.app.playerStartHealth = 1000
-        self.app.playerEnergy = self.app.playerStartEnergy = 1000
-        self.app.enemyHealth = self.app.enemyStartHealth = 1000
-        self.app.enemyEnergy = self.app.enemyStartEnergy = 1000
+        self.app.players = [None, None]
         
-        self.app.players = []
-        self.app.playerStrategy.setPlayer(self.app)
-        self.app.enemyStrategy = EnemyStrategy3(self.app, DeepMalis2(self.app.enemyStartHealth,50,self.app.enemyStartEnergy, "Novi11100", 0.05))
-        self.app.players[1].load_model()
+        self.app.enemyStrategy = self.app.enemyStrategies[0]
 
         self.app.gameStrategy.level = 2
         self.app.root.after(self.app.afterTime*3, self.app.playerWinnerGif.pause)

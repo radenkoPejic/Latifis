@@ -45,7 +45,7 @@ class Igra():
         self.player_turn = self.player1
         self.player1.buffs = []
         self.player2.buffs = []
-        self.player1.queue.reset()
+        if type(self.player1) == DeepMalis2 or type(self.player1) == DeepMalis3: self.player1.queue.reset()
         #self.player2.queue.reset()
 
     #f-ja za treniranje

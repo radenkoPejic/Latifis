@@ -1,5 +1,4 @@
 from offlinegame import *
-
 from math import floor
 from pubnub.callbacks import SubscribeCallback
 from pubnub.enums import PNStatusCategory
@@ -18,7 +17,6 @@ class MySubscribeCallback(SubscribeCallback):
         
     def status(self, pubnub, status):
         print(status)
-        print(type(pubnub))
         
     def message(self, pubnub, message):
         print("message.message[0]="+str(message.message[0]))
@@ -103,19 +101,10 @@ class OnlineGameStrategy(GameStrategy):
     #odabir igraca za online igru
     def setGame(self):
         self.start()
-        self.app.playerHealth = self.app.playerStartHealth = 1000
-        self.app.playerEnergy = self.app.playerStartEnergy = 1000
-        self.app.enemyHealth = self.app.enemyStartHealth = 1000
-        self.app.enemyEnergy = self.app.enemyStartEnergy = 1000
+        self.app.players = [None, None]
+        self.app.playerStrategy = self.app.playerStrategies[self.app.selectedPlayer]
         
-        #kreiranje igraca
-        if (self.app.selectedPlayer == 0):
-            self.app.playerStrategy = PlayerStrategy1("Novi11100", 0.05)
-            self.app.playerWinnerGif = PlayerWinnerGif1(self.app.root, self.app.endGameCanvas, 0, 0, self.app)
-        else:
-            self.app.playerStrategy = PlayerStrategy2("dm3vsdm21000vse11000", 0.05)
-            self.app.playerWinnerGif = PlayerWinnerGif2(self.app.root, self.app.endGameCanvas, 0, 0, self.app)
-        self.app.playerStrategy.setPlayer(self.app, 0)
+        self.app.playerStrategy.setPlayer(self.app, False, True)
         
         self.connectOnline()
         
@@ -148,17 +137,14 @@ class OnlineGameStrategy(GameStrategy):
         
         randEnvironment = floor(pom * 8)
         self.app.selectEnvironment(randEnvironment)
-        
         self.app.pubnub.publish().channel("chan-1").message([1,self.prepare(self.app.players[0]), self.app.selectedPlayer, self.playerCoin]).pn_async(self.my_publish_callback)
   
   
   
     #pokretanje online igre
     def startOnlineGame(self, player2, selectedPlayer2):
-        if selectedPlayer2 == 0:
-            self.app.enemyStrategy = EnemyStrategy3(self.app, player2)
-        else:
-            self.app.enemyStrategy = EnemyStrategy4(self.app, player2)
+        self.app.enemyStrategy = self.app.enemyStrategies[selectedPlayer2]
+        self.app.enemyStrategy.addPlayer2(self.app, player2)
         self.level = 1
         print("START ONLINE GAME")
         self.app.startGame()

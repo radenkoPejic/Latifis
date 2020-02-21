@@ -114,6 +114,7 @@ class DeepMalis2(DeepMalis):
         self.spells.append(Spell.Long_MissHeal(6,300,10,4)) #promena
         self.spells.append(Spell.Charge(0,0,400))
         self.spells.append(Spell.Stun(7,200,3))
+        self.alwaysCastableSpellIndex = 2
         
 class DeepMalis3(DeepMalis):
 
@@ -124,3 +125,4 @@ class DeepMalis3(DeepMalis):
         self.spells.append(Spell.Flexible(3,300,30,2))
         self.spells.append(Spell.ProtectionCharge(0,0,400))
         self.spells.append(Spell.DrainAttack(5,400,100))#5,400,100
+        self.alwaysCastableSpellIndex = 2

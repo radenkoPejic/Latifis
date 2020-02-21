@@ -105,8 +105,11 @@ class Application():
         self.firstPlayer = 0
         self.players = []
         self.newPlayers = [None, None]
+        
         self.playerStrategy = None
         self.enemyStrategy = None
+        self.playerStrategies = [PlayerStrategy1("Novi11100", 0.05), PlayerStrategy2("dm3vsdm21000vse11000", 0.05), PlayerStrategy3("Enemy", 1), PlayerStrategy4("Enemy2", 1)]
+        self.enemyStrategies = [EnemyStrategy1("Novi11100", 0.05), EnemyStrategy2("dm3vsdm21000vse11000", 0.05), EnemyStrategy3("Enemy1", 1), EnemyStrategy4("Enemy2", 1)]
 
         self.dodgeGifs = []
         
@@ -189,12 +192,18 @@ class Application():
     #apdejt svih progres barova, zaokruzivanje na prvi veci (ceil)    
     def updateStatus(self):
         self.playerHealthBar["value"] = 100*self.players[0].health/self.players[0].max_health
-        self.playerEnergyBar["value"] = 100*self.players[0].energy/self.players[0].max_energy
+        if self.players[0].max_energy == 20000:
+            self.playerEnergyBar["value"] = 100
+        else:
+            self.playerEnergyBar["value"] = 100*self.players[0].energy/self.players[0].max_energy
         self.playerHealthBar.update()
         self.playerEnergyBar.update()
         self.playerStatusCanvas.itemconfig(self.playerHealthText, text = "Health "+str(ceil(self.players[0].health)))
-        self.playerStatusCanvas.itemconfig(self.playerEnergyText, text = "Energy "+str(ceil(self.players[0].energy)))
-        
+        if self.players[0].max_energy != 20000:
+            self.playerStatusCanvas.itemconfig(self.playerEnergyText, text = "Energy "+str(ceil(self.players[0].energy)))
+        else:
+            self.playerStatusCanvas.itemconfig(self.playerEnergyText, text = "Energy infinite")
+            
         self.enemyHealthBar["value"] = 100*self.players[1].health/self.players[1].max_health
         if self.players[1].max_energy == 20000:
             self.enemyEnergyBar["value"] = 100
@@ -205,6 +214,9 @@ class Application():
         self.enemyStatusCanvas.itemconfig(self.enemyHealthText, text = "Health "+str(ceil(self.players[1].health)))
         if self.players[1].max_energy != 20000:
             self.enemyStatusCanvas.itemconfig(self.enemyEnergyText, text = "Energy "+str(ceil(self.players[1].energy)))
+        else:
+            self.enemyStatusCanvas.itemconfig(self.enemyEnergyText, text = "Energy infinite")
+    
     
     def createTexts(self, texts, x, y, anch = NW):
         texts.clear()
@@ -275,7 +287,7 @@ class Application():
                     #potez(charge je obicno uvek castable) kako bi se igracev gif prikazao u odredjenoj brzini
                     if self.players[0].stunned == True:
                         self.playerPlayed[0] = 1
-                        self.playerActionIndex = 2
+                        self.playerActionIndex = self.players[0].alwaysCastableSpellIndex
                     else:
                         #ako je prvi igrac covek cupka u mestu
                         self.playerGif.wait()
@@ -484,7 +496,7 @@ class Application():
         self.enemyStatusImage = ImageTk.PhotoImage(self.enemyStatusPhoto)
         self.enemyStatusCanvas.create_image(0, 0, image = self.enemyStatusImage, anchor = NW)
         self.enemyHealthText = self.enemyStatusCanvas.create_text(statusCanvasWidth - barTextX, 10, anchor = NE, text = "Health "+str(self.enemyHealth), fill = "white")
-        self.enemyEnergyText = self.enemyStatusCanvas.create_text(statusCanvasWidth - barTextX, 31, anchor = NE, text = "Energy infinite", fill = "white")
+        self.enemyEnergyText = self.enemyStatusCanvas.create_text(statusCanvasWidth - barTextX, 31, anchor = NE, text = "Health "+str(self.enemyEnergy), fill = "white")
 
         self.enemyHealthBar = ttk.Progressbar(self.enemyStatusCanvas, style = "red.Horizontal.TProgressbar",orient="horizontal", mode="determinate")
         self.enemyHealthBar.place(width = barWidth, height = 15, x = statusCanvasWidth - barWidth - barX, y = 10)
@@ -590,7 +602,7 @@ class Application():
         self.maxPlayerY = 10
         
         self.selectedPlayer = 0
-        self.numOfPlayers = 2
+        self.numOfPlayers = len(self.playerStrategies)
         
         self.menuPlayerImages = []
         
@@ -600,11 +612,16 @@ class Application():
         self.menuPlayerPhoto2 = Image.open("resources/player2.png")
         self.menuPlayerImages.append(ImageTk.PhotoImage(self.menuPlayerPhoto2))
         
-        self.playerX = int(self.maxPlayerX + (1-self.menuPlayerImages[self.selectedPlayer].width()/self.maxPlayerWidth)*self.maxPlayerWidth/2)
-        self.playerY = int(self.maxPlayerY + (1-self.menuPlayerImages[self.selectedPlayer].height()/self.maxPlayerHeight)*self.maxPlayerHeight/2)
-
-        self.menuCanvasPlayerImage = self.menuCanvas.create_image(self.playerX, self.playerY, image = self.menuPlayerImages[self.selectedPlayer], anchor = NW)
-            
+        self.menuPlayerPhoto3 = Image.open("resources/enemy1.png")
+        self.menuPlayerImages.append(ImageTk.PhotoImage(self.menuPlayerPhoto3))
+        
+        self.menuPlayerPhoto4 = Image.open("resources/enemy2.png")
+        self.menuPlayerImages.append(ImageTk.PhotoImage(self.menuPlayerPhoto4))
+        
+        self.menuCanvasPlayerImage = self.menuCanvas.create_image(self.maxPlayerX, self.maxPlayerY, image = self.menuPlayerImages[self.selectedPlayer], anchor = NW)
+        self.playerX = int((1-self.menuPlayerImages[self.selectedPlayer].width()/self.maxPlayerWidth)*self.maxPlayerWidth/2)
+        self.playerY = int((1-self.menuPlayerImages[self.selectedPlayer].height()/self.maxPlayerHeight)*self.maxPlayerHeight/2)
+        self.menuCanvas.move(self.menuCanvasPlayerImage, self.playerX, self.playerY)
         
         self.menuSpellBoxes = []
         x = 50
@@ -725,8 +742,47 @@ class Application():
         
         self.menuSpellImages.append(self.menuSpellImages2)
         
-        self.menuSpellButtons = []
+        self.menuSpellImages3 = []
         
+        self.menuSpellPhoto30 = Image.open("resources/e1attack.jpg")
+        self.menuSpellPhoto30 = self.menuSpellPhoto30.resize((self.menuSpellPhotoSize, self.menuSpellPhotoSize))
+        self.menuSpellImages3.append(ImageTk.PhotoImage(self.menuSpellPhoto30))
+        
+        self.menuSpellPhoto31 = Image.open("resources/e1energy.jpg")
+        self.menuSpellPhoto31 = self.menuSpellPhoto31.resize((self.menuSpellPhotoSize, self.menuSpellPhotoSize))
+        self.menuSpellImages3.append(ImageTk.PhotoImage(self.menuSpellPhoto31))
+        
+        self.menuSpellPhoto32 = Image.open("resources/e1burn.jpg")
+        self.menuSpellPhoto32 = self.menuSpellPhoto32.resize((self.menuSpellPhotoSize, self.menuSpellPhotoSize))
+        self.menuSpellImages3.append(ImageTk.PhotoImage(self.menuSpellPhoto32))
+        
+        self.menuSpellPhoto33 = Image.open("resources/e1weaken.jpg")
+        self.menuSpellPhoto33 = self.menuSpellPhoto33.resize((self.menuSpellPhotoSize, self.menuSpellPhotoSize))
+        self.menuSpellImages3.append(ImageTk.PhotoImage(self.menuSpellPhoto33))
+        
+        self.menuSpellImages.append(self.menuSpellImages3)
+        
+        self.menuSpellImages4 = []
+        
+        self.menuSpellPhoto40 = Image.open("resources/e2attack.jpg")
+        self.menuSpellPhoto40 = self.menuSpellPhoto40.resize((self.menuSpellPhotoSize, self.menuSpellPhotoSize))
+        self.menuSpellImages4.append(ImageTk.PhotoImage(self.menuSpellPhoto40))
+        
+        self.menuSpellPhoto41 = Image.open("resources/e2heal.jpg")
+        self.menuSpellPhoto41 = self.menuSpellPhoto41.resize((self.menuSpellPhotoSize, self.menuSpellPhotoSize))
+        self.menuSpellImages4.append(ImageTk.PhotoImage(self.menuSpellPhoto41))
+        
+        self.menuSpellPhoto42 = Image.open("resources/e2rewind.jpg")
+        self.menuSpellPhoto42 = self.menuSpellPhoto42.resize((self.menuSpellPhotoSize, self.menuSpellPhotoSize))
+        self.menuSpellImages4.append(ImageTk.PhotoImage(self.menuSpellPhoto42))
+        
+        self.menuSpellPhoto43 = Image.open("resources/e2weaken.jpg")
+        self.menuSpellPhoto43 = self.menuSpellPhoto43.resize((self.menuSpellPhotoSize, self.menuSpellPhotoSize))
+        self.menuSpellImages4.append(ImageTk.PhotoImage(self.menuSpellPhoto43))
+        
+        self.menuSpellImages.append(self.menuSpellImages4)
+        
+        self.menuSpellButtons = []
         
         for k in range (self.numOfPlayers):
             xx = self.menuSpellButtonsX
@@ -738,9 +794,9 @@ class Application():
                 xx += self.menuSpellButtonsX*2
             self.menuSpellButtons.append(tmpmenuSpellButtons)
             
-            
-        self.playerDescrs = [PlayerStrategy1.descr, PlayerStrategy2.descr]
-        self.playerSpellDescrs = [PlayerStrategy1.spellDescrs, PlayerStrategy2.spellDescrs]
+        ##    
+        self.playerDescrs = [PlayerStrategy1.descr, PlayerStrategy2.descr, "", ""]
+        self.playerSpellDescrs = [PlayerStrategy1.spellDescrs, PlayerStrategy2.spellDescrs, ["", "", "", ""], ["", "", "", ""]]
         self.menuCanvasDescr = self.menuCanvas.create_text(10, 350,  anchor = NW, text = self.playerDescrs[0], font = ("Purisa", 15))
         
         self.selectPlayer()
@@ -752,15 +808,18 @@ class Application():
         self.playerActionIndex = 0
         self.potez = 0
         
-        #modovi
+        ##modovi srediti ih
         if self.selectedMode == 0:
-            self.playerModes = ["player", "enemy"]
-            self.modeStrategies = [PlayerModeStrategy(self), EnemyModeStrategy(self)]
+            self.playerModes = [self.playerStrategy.getTypeOfPlayer(), self.enemyStrategy.getTypeOfPlayer()]
+            if self.playerModes[0] == "player":
+                self.modeStrategies = [PlayerModeStrategy(self), EnemyModeStrategy(self)]
+            else:
+                self.modeStrategies = [EnemyModeStrategy(self), EnemyModeStrategy(self)]
         elif self.selectedMode == 1:
-            self.playerModes = ["human", "enemy"]
+            self.playerModes = ["human", self.enemyStrategy.getTypeOfPlayer()]
             self.modeStrategies = [HumanModeStrategy(self), EnemyModeStrategy(self)]
         elif self.selectedMode == 2:
-            self.playerModes = ["human", "player"]
+            self.playerModes = ["human", self.enemyStrategy.getTypeOfPlayer()]
             self.modeStrategies = [HumanModeStrategy(self), PlayerModeStrategy(self)]
         elif self.selectedMode == 3:
             self.playerModes = ["human", "online"]
@@ -788,6 +847,8 @@ class Application():
         self.playerBuffDescrs = []
         self.enemyBuffDescrs = []
         
+        self.playerStrategy.setPlayerWinnerGif(self)
+        
         self.playerStrategy.setPlayerTexts(self)
         self.enemyStrategy.setPlayerTexts(self)
         
@@ -796,10 +857,9 @@ class Application():
         self.playerSpellGifs = []
         self.enemySpellGifs = []
         
-        if self.selectedMode < 2:
-            self.players = []
-            self.playerStrategy.setPlayer(self)
-            self.enemyStrategy.setPlayer(self)
+        
+        self.playerStrategy.setPlayer(self, self.playerModes[0]=="player", self.playerModes[0]!="online")
+        self.enemyStrategy.setPlayer(self, self.playerModes[1]!="online")
             
 
         self.playerStrategy.setPlayerSpellImages(self)
@@ -823,6 +883,9 @@ class Application():
             
         
         self.game = Igra(self.players[0], self.players[1])
+        
+        if self.playerModes[0] == "enemy":
+            self.players[0].initFuzzy(self.players[1])
         if self.playerModes[1] == "enemy":
             self.players[1].initFuzzy(self.players[0])
         
@@ -891,8 +954,15 @@ class Application():
         self.selectPlayer()
 
     def selectPlayer(self):
-        self.playerX = int(self.maxPlayerX + (1-self.menuPlayerImages[self.selectedPlayer].width()/self.maxPlayerWidth)*self.maxPlayerWidth/2)
-        self.playerY = int(self.maxPlayerY + (1-self.menuPlayerImages[self.selectedPlayer].height()/self.maxPlayerHeight)*self.maxPlayerHeight/2)
+        oldX = self.playerX
+        oldY = self.playerY
+        self.menuCanvas.move(self.menuCanvasPlayerImage, -self.playerX, -self.playerY)
+        #self.playerX = int(self.maxPlayerX + (1-self.menuPlayerImages[self.selectedPlayer].width()/self.maxPlayerWidth)*self.maxPlayerWidth/2)
+        #self.playerY = int(self.maxPlayerY + (1-self.menuPlayerImages[self.selectedPlayer].height()/self.maxPlayerHeight)*self.maxPlayerHeight/2)
+        self.playerX = int((1-self.menuPlayerImages[self.selectedPlayer].width()/self.maxPlayerWidth)*self.maxPlayerWidth/2)
+        self.playerY = int((1-self.menuPlayerImages[self.selectedPlayer].height()/self.maxPlayerHeight)*self.maxPlayerHeight/2)
+        
+        self.menuCanvas.move(self.menuCanvasPlayerImage, self.playerX, self.playerY)
 
         self.menuCanvas.itemconfig(self.menuCanvasPlayerImage, image = self.menuPlayerImages[self.selectedPlayer])
         xx = self.menuSpellButtonsX

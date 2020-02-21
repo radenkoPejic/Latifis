@@ -11,24 +11,33 @@ slowAfter - najvise usporen prikaz kada je igrac stunovan
 normalAfter - normalan prikaz kada igrac igra sve spellove
 '''           
 class EnemyGif1:
-    def __init__(self, parent, canvas, x, y, app):
+    def __init__(self, parent, canvas, x, y, app, playerIndex = 1):
         self.parent = parent
         self.canvas = canvas
-        self.spellGifs = app.enemySpellGifs
-        self.enemyTexts = app.enemyTexts
+        self.playerIndex = playerIndex
+        
+        if playerIndex == 1:
+            self.enemyTexts = app.enemyTexts
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/enemy1.gif"))]
+            self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+            self.hitX = x - 290 #mesto za primanje udarca
+        else:
+            self.enemyTexts = app.playerTexts
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/enemy1.gif"))]
+            self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
+            self.hitX = app.rootWidth - x + 290 #mesto za primanje udarca
+            
+            
         self.dodgeGifs = app.dodgeGifs
         self.app = app
         
-        self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/enemy1.gif"))]
-        
-        self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         self.slowAfter = 105
         self.normalAfter = 67
         self.after = self.normalAfter
         self.animating = True
         self.pausing = True
         self.size = 3 #najveca velicina
-        self.hitX = 510 #mesto za primanje udarca
+        
         self.animate(0)
         
     def animate(self, counter):
@@ -51,10 +60,13 @@ class EnemyGif1:
     def goOn(self):
         self.pausing = False
         
+    def wait(self):
+        return
+        
     #podesavanje brzine, prikaza, ispisa i dodgea na pocetku odigravanja poteza  
     def setSpell(self, spell):
     
-        if self.app.players[1].stunned:
+        if self.app.players[self.playerIndex].stunned:
             self.after = self.slowAfter
         else:
             self.after = self.normalAfter
@@ -63,8 +75,8 @@ class EnemyGif1:
         color = "white"
             
         if isinstance(spell, AttackSpell):
-            if not self.app.players[1].stunned and spell.dodged:
-                    self.dodgeGifs[0].goOn()
+            if not self.app.players[self.playerIndex].stunned and spell.dodged:
+                    self.dodgeGifs[1-self.playerIndex].goOn()
                     
         self.app.showText(self.enemyTexts, ispis, color)        
         
@@ -72,7 +84,7 @@ class EnemyGif1:
 Gif u pokretu koji se zaustavlja i uvecava
 '''     
 class EnemyAttackGif1:
-    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex):
+    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
         self.parent = parent
         self.canvas = canvas
         self.x0 = x
@@ -84,16 +96,32 @@ class EnemyAttackGif1:
         self.dy = app.enemyGif.size - app.playerGif.size    
         self.app = app
         self.spellIndex = spellIndex
-        
-        self.sequence = []
+        self.playerIndex = playerIndex
         res = 0.06 #slike u gifu se uvecavaju
-        for img in ImageSequence.Iterator(Image.open("resources/enemy1attack.gif")):
-            width, height = img.size
-            image = img.resize((int(res*width), int(res*height)))
-            self.sequence.append(ImageTk.PhotoImage(image)) 
-            res+=0.06
+        self.sequence = []
         
-        self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = E)
+        if playerIndex == 1:
+            self.playerTexts = self.app.playerTexts
+            for img in ImageSequence.Iterator(Image.open("resources/enemy1attack.gif")):
+                width, height = img.size
+                image = img.resize((int(res*width), int(res*height)))
+                self.sequence.append(ImageTk.PhotoImage(image)) 
+                res+=0.06
+            self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = E, state = "hidden")
+        else:
+            self.dx = -self.dx
+            self.dy = -self.dy
+            self.playerTexts = self.app.enemyTexts
+            for img in ImageSequence.Iterator(Image.open("resources/enemy1attack.gif")):
+                width, height = img.size
+                image = img.resize((int(res*width), int(res*height)))
+                image = image.transpose(Image.FLIP_LEFT_RIGHT)
+                self.sequence.append(ImageTk.PhotoImage(image)) 
+                res+=0.06
+            self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = W,  state = "hidden")
+            self.x0 = self.x = app.rootWidth - x
+        
+       
         self.after = int(30*afterTime/1500)
         self.animating = True
         self.pausing = True
@@ -122,14 +150,14 @@ class EnemyAttackGif1:
             else: #zaustavljanje i prikazivanje posledica udara
                 self.canvas.itemconfig(self.image, state="hidden")
                 self.pausing = True
-                spell = self.app.players[1].spells[self.spellIndex]
+                spell = self.app.players[self.playerIndex].spells[self.spellIndex]
                 
-                if not self.app.players[1].stunned and not spell.dodged: 
+                if not self.app.players[self.playerIndex].stunned and not spell.dodged: 
                     if spell.criticalHit:
                         self.criticalHitSound.play()
-                        self.canvas.itemconfig(self.app.criticalImages[0], state = "normal")
+                        self.canvas.itemconfig(self.app.criticalImages[1-self.playerIndex], state = "normal")
                     healthText = str(int(-spell.damageDone))
-                    self.app.showText(self.app.playerTexts, healthText, spell.color)    
+                    self.app.showText(self.playerTexts, healthText, spell.color)    
                         
                 self.parent.after(self.after, lambda: self.animate(0))
         
@@ -153,17 +181,25 @@ class EnemyAttackGif1:
 Gif koji se zaustavlja
 '''            
 class EnemyEnergyAttackGif1:
-    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex):
+    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
         self.parent = parent
         self.canvas = canvas
         self.afterTime = afterTime//2
             
         self.app = app
         self.spellIndex = spellIndex
+        self.playerIndex = playerIndex
         
-        self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/enemy1energy.gif"))]
-
-        self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+        if playerIndex == 1:
+            self.playerTexts = self.app.playerTexts
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/enemy1energy.gif"))]
+            self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+        else:
+            self.playerTexts = self.app.enemyTexts
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/enemy1energy.gif"))]
+            self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
+        
+            
         self.after = int(80*afterTime/1500)
         self.animating = True
         self.pausing = True
@@ -189,14 +225,14 @@ class EnemyEnergyAttackGif1:
             else: #zaustavljanje i prikazivanje posledica udara
                 self.canvas.itemconfig(self.image, state="hidden")
                 self.pausing = True
-                spell = self.app.players[1].spells[self.spellIndex]
+                spell = self.app.players[self.playerIndex].spells[self.spellIndex]
                 
-                if not self.app.players[1].stunned and not spell.dodged:
+                if not self.app.players[self.playerIndex].stunned and not spell.dodged:
                     if spell.criticalHit:
                         self.criticalHitSound.play()
-                        self.canvas.itemconfig(self.app.criticalImages[0], state = "normal")
+                        self.canvas.itemconfig(self.app.criticalImages[1-self.playerIndex], state = "normal")
                     healthText = str(int(-spell.damageDone))
-                    self.app.showText(self.app.playerTexts, healthText, spell.color)    
+                    self.app.showText(self.playerTexts, healthText, spell.color)    
                         
                 self.parent.after(self.after, lambda: self.animate(0))
         
@@ -217,17 +253,25 @@ class EnemyEnergyAttackGif1:
 Gif koji se zaustavlja
 '''            
 class EnemyBurnAttackGif1:
-    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex):
+    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
         self.parent = parent
         self.canvas = canvas
         self.afterTime = afterTime//2
             
         self.app = app
         self.spellIndex = spellIndex
+        self.playerIndex = playerIndex
         
-        self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/enemy1burn.gif"))]
+        if playerIndex == 1:
+            self.playerTexts = self.app.playerTexts
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/enemy1burn.gif"))]
+            self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+        else:
+            self.playerTexts = self.app.enemyTexts
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/enemy1burn.gif"))]
+            self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
+        
 
-        self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         self.after = int(80*afterTime/1500)
         self.animating = True
         self.pausing = True
@@ -253,14 +297,14 @@ class EnemyBurnAttackGif1:
             else: #zaustavljanje i prikazivanje posledica udara
                 self.canvas.itemconfig(self.image, state="hidden")
                 self.pausing = True
-                spell = self.app.players[1].spells[self.spellIndex]
+                spell = self.app.players[self.playerIndex].spells[self.spellIndex]
                 
-                if not self.app.players[1].stunned and not spell.dodged:
+                if not self.app.players[self.playerIndex].stunned and not spell.dodged:
                     if spell.criticalHit:
                         self.criticalHitSound.play()
-                        self.canvas.itemconfig(self.app.criticalImages[0], state = "normal")
+                        self.canvas.itemconfig(self.app.criticalImages[1-self.playerIndex], state = "normal")
                     healthText = str(int(-spell.damageDone))
-                    self.app.showText(self.app.playerTexts, healthText, spell.color)    
+                    self.app.showText(self.playerTexts, healthText, spell.color)    
                         
                 self.parent.after(self.after, lambda: self.animate(0))
         
@@ -281,17 +325,25 @@ class EnemyBurnAttackGif1:
 Gif koji se zaustavlja
 '''    
 class EnemyWeakenAttackGif1:
-    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex):
+    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
         self.parent = parent
         self.canvas = canvas
         self.afterTime = afterTime//2
             
         self.app = app
         self.spellIndex = spellIndex
+        self.playerIndex = playerIndex
         
-        self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/enemy1weaken.gif"))]
+        if playerIndex == 1:
+            self.playerTexts = self.app.playerTexts
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/enemy1weaken.gif"))]
+            self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+        else:
+            self.playerTexts = self.app.enemyTexts
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/enemy1weaken.gif"))]
+            self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
+        
 
-        self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
         self.after = int(80*afterTime/1500)
         self.animating = True
         self.pausing = True
@@ -317,14 +369,14 @@ class EnemyWeakenAttackGif1:
             else: #zaustavljanje i prikazivanje posledica udara
                 self.canvas.itemconfig(self.image, state="hidden")
                 self.pausing = True
-                spell = self.app.players[1].spells[self.spellIndex]
+                spell = self.app.players[self.playerIndex].spells[self.spellIndex]
                 
-                if not self.app.players[1].stunned and not spell.dodged:
+                if not self.app.players[self.playerIndex].stunned and not spell.dodged:
                     if spell.criticalHit:
                         self.criticalHitSound.play()
-                        self.canvas.itemconfig(self.app.criticalImages[0], state = "normal")
+                        self.canvas.itemconfig(self.app.criticalImages[1-self.playerIndex], state = "normal")
                     healthText = str(int(-spell.damageDone))
-                    self.app.showText(self.app.playerTexts, healthText, spell.color)    
+                    self.app.showText(self.playerTexts, healthText, spell.color)    
                 self.parent.after(self.after, lambda: self.animate(0))
         
     
@@ -344,13 +396,17 @@ class EnemyWeakenAttackGif1:
 Gif koji se neprstano vrti
 '''    
 class EnemyDodgeGif1:
-    def __init__(self, parent, canvas, x, y, app):
+    def __init__(self, parent, canvas, x, y, app, playerIndex = 1):
         self.parent = parent
         self.canvas = canvas
         
-        self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/enemy1dodge.gif"))]
-
-        self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+        if playerIndex == 1:
+            self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/enemy1dodge.gif"))]
+            self.image = self.canvas.create_image(x, y, image=self.sequence[0], anchor = SE)
+        else:
+            self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/enemy1dodge.gif"))]
+            self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
+        
         self.after = 33
         self.animating = True
         self.pausing = True
