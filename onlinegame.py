@@ -7,7 +7,8 @@ from pubnub.pubnub import PubNub
 import os
 import jsonpickle
 
-                
+
+#klasa ciji se objekat pretplacuje na kanal radi osluskivanja poruka                
 class MySubscribeCallback(SubscribeCallback):
     def __init__(self, app):
         self.app = app
@@ -21,76 +22,95 @@ class MySubscribeCallback(SubscribeCallback):
     def message(self, pubnub, message):
         print("message.message[0]="+str(message.message[0]))
         
+        #poruka 0 - oznacava inicijalnu poruku za uspostavljanje igre 
         if message.message[0] == 0:
             print(self.app.onlineGameStrategy.coinSent)
             print(message.message[1])
+            #ako je online igra u toku ne reaguje se na tudju poruku za uspostavljanje igre
+            if self.app.onlineGameStrategy.gameStarted == True: return
+            #ako je stigla poruka od protivnika pamtimo njegov coin
             if self.app.onlineGameStrategy.coinSent == False:
                 self.app.onlineGameStrategy.enemyCoin = message.message[1]
             self.app.onlineGameStrategy.coinSent = False
+            #proveravamo konekciju
             self.app.onlineGameStrategy.checkConnection()
         
+        #poruka 1 - oznacava drugu poruku za uspostavljanje igre
         elif message.message[0] == 1:
             message.message[1] = message.message[1].replace("\\\"","\"")
+            #prihvatamo protivnickog igraca
             player2 = jsonpickle.decode(message.message[1])
             selectedPlayer2 = message.message[2]
-            print("SELECTED PLAYER:", end ="")
-            print(selectedPlayer2)
             coin = message.message[3]
             print(coin)
-            if coin ==  self.app.onlineGameStrategy.enemyCoin:
+            #ako smo zeleli da igramo online igru (i ako ne igramo neku offline igru)
+            #i ako smo prihvatili coin od protivnika sa kojim smo razmenili coine u poruci 0
+            #krecemo u postavljanje online igre i njeno startovanje
+            if self.app.onlineGameStrategy.playerCoin != -1 and coin ==  self.app.onlineGameStrategy.enemyCoin:  
+                print("SELECTED PLAYER:", end ="")
+                print(selectedPlayer2)
                 self.app.onlineGameStrategy.startOnlineGame(player2, selectedPlayer2)
+
                 
-        elif message.message[0] == 2:
-            if self.app.side == 1:
-                message.message[1] = message.message[1].replace("\\\"","\"")
-                self.app.onlineGameStrategy.newPlayers[1] = jsonpickle.decode(message.message[1])
-                self.app.onlineGameStrategy.received[0] = True
-                self.app.onlineGameStrategy.checkReceived()
-            
-        elif message.message[0] == 3:
-            if self.app.side == 1:
-                message.message[1] = message.message[1].replace("\\\"","\"")
-                self.app.onlineGameStrategy.newPlayers[0] = jsonpickle.decode(message.message[1])
-                self.app.onlineGameStrategy.received[1] = True
-                self.app.onlineGameStrategy.checkReceived()
-                
-        elif message.message[0] == 4:
-            if self.app.side == 1:
-                self.app.onlineGameStrategy.app.playerActionIndex = int(message.message[1])
-                self.app.onlineGameStrategy.received[2] = True
-                self.app.onlineGameStrategy.checkReceived()
+        elif message.message[0] < 5:
+            #ako je protivnik na potezu i ako je to protivnik sa kojim igramo 
+            if self.app.side == 1 and str(self.app.onlineGameStrategy.enemyCoin)==message.message[1]:
+                #poruka 2 - prihvatamo novi objekat protivnickog igraca sa apdejtovanim podacima 
+                if message.message[0] == 2:
+                    message.message[2] = message.message[2].replace("\\\"","\"")
+                    self.app.onlineGameStrategy.newPlayers[1] = jsonpickle.decode(message.message[2])
+                    self.app.onlineGameStrategy.received[0] = True
+                    self.app.onlineGameStrategy.checkReceived()
+                #poruka 3 - prihvatamo novi objekat prvog igraca sa apdejtovanim podacima     
+                elif message.message[0] == 3:
+                    message.message[2] = message.message[2].replace("\\\"","\"")
+                    self.app.onlineGameStrategy.newPlayers[0] = jsonpickle.decode(message.message[2])
+                    self.app.onlineGameStrategy.received[1] = True
+                    self.app.onlineGameStrategy.checkReceived()
+                #poruka 4 - prihvatamo indeks odigranog spella protivnickog igraca 
+                elif message.message[0] == 4:
+                    self.app.onlineGameStrategy.app.playerActionIndex = int(message.message[2])
+                    self.app.onlineGameStrategy.received[2] = True
+                    self.app.onlineGameStrategy.checkReceived()
               
 
-    
-
+#klasa za online strategiju igre
+#pravimo samo jedan njen objekat na pocetku kreiranja aplikacije
 class OnlineGameStrategy(GameStrategy):
+
     def __init__(self, app):
         super().__init__(app)
         self.reset()
-        
+    
+    #resetovanje svih podataka pri kreiranju aplikacije ili pri pocetku offline igre ili na kraju online igre
     def reset(self):
         self.start()
         self.enemyCoin = -1
     
+    #resetovanje svih podataka sem protivnickog coina (koji moramo upamtiti ako je neko neko poslao poruku 0)
+    #zove se na klik misem pri odabranom online modu
     def start(self):
         self.app.playerFirst = -1
         self.app.players = []
         self.newPlayers = [None, None]
         self.received = [False, False, False]
         self.coinSent = False
+        self.gameStarted = False
         self.playerCoin = -1
-        
+    
+    #callback pri uspostavljanju igre i slanju poruke 0 
+    #kako bismo znali da li smo posiljalac ili primalac u tom trenutku
     def connection_callback(self, envelope, status):
     # Check whether request successfully completed or not
         if not status.is_error():
             self.coinSent = True
             pass
-    
+    #prazan standardni callback
     def my_publish_callback(self, envelope, status):
     # Check whether request successfully completed or not
         if not status.is_error():
             pass  
-            
+    #pripremanje - enkodovanje i serijalizacija objekta igraca pre slanja preko pubnuba    
     def prepare(self, player): 
         newA = jsonpickle.encode(player)
         newA = str(newA)
@@ -98,7 +118,7 @@ class OnlineGameStrategy(GameStrategy):
         newA = newA.replace("\"","\\\"")
         return newA
         
-    #odabir igraca za online igru
+    #odabir svog igraca za online igru
     def setGame(self):
         self.start()
         self.app.players = [None, None]
@@ -138,8 +158,7 @@ class OnlineGameStrategy(GameStrategy):
         randEnvironment = floor(pom * 8)
         self.app.selectEnvironment(randEnvironment)
         self.app.pubnub.publish().channel("chan-1").message([1,self.prepare(self.app.players[0]), self.app.selectedPlayer, self.playerCoin]).pn_async(self.my_publish_callback)
-  
-  
+
   
     #pokretanje online igre
     def startOnlineGame(self, player2, selectedPlayer2):
@@ -147,6 +166,7 @@ class OnlineGameStrategy(GameStrategy):
         self.app.enemyStrategy.addPlayer2(self.app, player2)
         self.level = 1
         print("START ONLINE GAME")
+        self.gameStarted = True
         self.app.startGame()
         
     
@@ -163,7 +183,7 @@ class OnlineGameStrategy(GameStrategy):
 
     #slanje broja akcije i novih stanja nakon odigranog poteza
     def updateGameStatus(self):
-        self.app.pubnub.publish().channel("chan-1").message([4,str(self.app.playerActionIndex)]).pn_async(self.my_publish_callback)
-        self.app.pubnub.publish().channel("chan-1").message([2,self.prepare(self.app.players[0])]).pn_async(self.my_publish_callback)
-        self.app.pubnub.publish().channel("chan-1").message([3,self.prepare(self.app.players[1])]).pn_async(self.my_publish_callback)
+        self.app.pubnub.publish().channel("chan-1").message([4, str(self.playerCoin), str(self.app.playerActionIndex)]).pn_async(self.my_publish_callback)
+        self.app.pubnub.publish().channel("chan-1").message([2, str(self.playerCoin), self.prepare(self.app.players[0])]).pn_async(self.my_publish_callback)
+        self.app.pubnub.publish().channel("chan-1").message([3, str(self.playerCoin), self.prepare(self.app.players[1])]).pn_async(self.my_publish_callback)
     

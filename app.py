@@ -10,6 +10,7 @@ import os
 class Application():
 
     def __init__(self, root, pubnub):
+        #postavljanje naziva appa, ikonice i sirine i visine prozora
         self.root = root        
         self.root.title("Latifis")
         self.rootWidth = 806
@@ -18,6 +19,7 @@ class Application():
         self.root.resizable(0, 0)
         self.root.iconbitmap("resources/icon.ico")
         
+        #dodavanje pubnub listenera
         self.pubnub = pubnub
         self.pubnub.add_listener(MySubscribeCallback(self))
         self.pubnub.subscribe().channels("chan-1").execute()
@@ -103,17 +105,15 @@ class Application():
         self.enemyBuffTexts = []
         
         self.firstPlayer = 0
-        self.players = []
+        self.players = [None, None]
         self.newPlayers = [None, None]
         
         self.playerStrategy = None
         self.enemyStrategy = None
         self.playerStrategies = [PlayerStrategy1("Novi11100", 0.05), PlayerStrategy2("dm3vsdm21000vse11000", 0.05), PlayerStrategy3("Enemy", 1), PlayerStrategy4("Enemy2", 1)]
-        self.enemyStrategies = [EnemyStrategy1("Novi11100", 0.05), EnemyStrategy2("dm3vsdm21000vse11000", 0.05), EnemyStrategy3("Enemy1", 1), EnemyStrategy4("Enemy2", 1)]
+        self.enemyStrategies = [EnemyStrategy1("Novi11100", 0.05), EnemyStrategy2("dm3vsdm21000vse11000", 0.05), EnemyStrategy3("Enemy", 1), EnemyStrategy4("Enemy2", 1)]
 
         self.dodgeGifs = []
-        
-        self.playerSpellGifs = []
         
         self.playerSpellGifs = []
         self.playerGif = None
@@ -122,8 +122,10 @@ class Application():
         self.enemyGif = None
         
         self.environment = -1
-        self.environmentTags = ["forest", "desert", "lava", "ice"]
+        self.environmentTags = ["Forest", "Desert", "Lava", "Ice"]
         self.environmentTextColors = ["black", "black", "white", "black"]
+        self.environmentStrategies = [ForestStrategy(), DesertStrategy(), LavaStrategy(), IceStrategy()]
+        self.environmentStrategy = None
         
         self.playerWinnerGif = None
         self.endGameCanvas = None
@@ -135,11 +137,16 @@ class Application():
         self.game = None
                 
         self.musicVolume = 100
+        
         self.playerModes = []
+        self.gameModeStrategies = [ModePvEStrategy(), ModeHvEStrategy(), ModeHvPStrategy(), ModeHvHStrategy()]
+        self.playerModeStrategies ={"player": PlayerModeStrategy(self), "enemy": EnemyModeStrategy(self),\
+        "human": HumanModeStrategy(self), "online": OnlineModeStrategy(self)}
         self.modeStrategies = [None, None] 
         self.playerPlayed = []
         
         self.onlineGameStrategy = OnlineGameStrategy(self)
+        self.gameStrategies = [OfflineGameStrategyE(self), OfflineGameStrategyE(self), OfflineGameStrategyP(self), self.onlineGameStrategy]
         self.gameStrategy = None
         
         self.clockAfter = None
@@ -192,32 +199,32 @@ class Application():
     #apdejt svih progres barova, zaokruzivanje na prvi veci (ceil)    
     def updateStatus(self):
         self.playerHealthBar["value"] = 100*self.players[0].health/self.players[0].max_health
-        if self.players[0].max_energy == 20000:
+        if self.players[0].max_energy == PEStrategy.enemyMaxEnergy:
             self.playerEnergyBar["value"] = 100
         else:
             self.playerEnergyBar["value"] = 100*self.players[0].energy/self.players[0].max_energy
         self.playerHealthBar.update()
         self.playerEnergyBar.update()
         self.playerStatusCanvas.itemconfig(self.playerHealthText, text = "Health "+str(ceil(self.players[0].health)))
-        if self.players[0].max_energy != 20000:
+        if self.players[0].max_energy != PEStrategy.enemyMaxEnergy:
             self.playerStatusCanvas.itemconfig(self.playerEnergyText, text = "Energy "+str(ceil(self.players[0].energy)))
         else:
             self.playerStatusCanvas.itemconfig(self.playerEnergyText, text = "Energy infinite")
             
         self.enemyHealthBar["value"] = 100*self.players[1].health/self.players[1].max_health
-        if self.players[1].max_energy == 20000:
+        if self.players[1].max_energy == PEStrategy.enemyMaxEnergy:
             self.enemyEnergyBar["value"] = 100
         else:
             self.enemyEnergyBar["value"] = 100*self.players[1].energy/self.players[1].max_energy
         self.enemyHealthBar.update()
         self.enemyEnergyBar.update()
         self.enemyStatusCanvas.itemconfig(self.enemyHealthText, text = "Health "+str(ceil(self.players[1].health)))
-        if self.players[1].max_energy != 20000:
+        if self.players[1].max_energy != PEStrategy.enemyMaxEnergy:
             self.enemyStatusCanvas.itemconfig(self.enemyEnergyText, text = "Energy "+str(ceil(self.players[1].energy)))
         else:
             self.enemyStatusCanvas.itemconfig(self.enemyEnergyText, text = "Energy infinite")
     
-    
+    #stvaranje teksta sa okvirom za prikaz damagea
     def createTexts(self, texts, x, y, anch = NW):
         texts.clear()
         texts.append(self.backgroundCanvas.create_text(x-1, y-1, anchor = anch, font = ("Purisa", 20, "bold"), text = ""))
@@ -226,15 +233,17 @@ class Application():
         texts.append(self.backgroundCanvas.create_text(x+1, y+1, anchor = anch, font = ("Purisa", 20, "bold"), text = ""))
         texts.append(self.backgroundCanvas.create_text(x, y, anchor = anch, font = ("Purisa", 20, "bold"), text = ""))       
     
+    #prikazivanje teksta sa okvirom za prikaz damagea, boja okvira zavisi od pozadine
     def showText(self, texts, ispis, color = "white"):
         environmentColor = self.environmentTextColors[self.environment]
         for i in range (len(texts)-1):
             self.backgroundCanvas.itemconfig(texts[i], text = ispis, fill = environmentColor)
         self.backgroundCanvas.itemconfig(texts[len(texts)-1], text = ispis, fill = color)
         
-
+    #glavna funkcija koja se poziva u toku igre
     def run(self):
         
+        #dok jos traje igra
         if self.game.winner is None:
             turn = self.potez//2 + 1
             
@@ -362,6 +371,7 @@ class Application():
             if self.playerPlayed[self.side]==1:
                 self.potez += 1
                 
+                #sakrivanje prikaza tajmera
                 self.root.after(200, lambda: self.spellCanvas.itemconfig(self.playerClockText, text = ""))
                 
                 #dohvatanje odigranog spella ako je uopste odigran
@@ -426,7 +436,7 @@ class Application():
         app.playerStrategy.stop(self)
         app.enemyStrategy.stop(self)
     
-    
+    #povratak u meni nakon kraja igre
     def backToMenu(self):
         self.onlineGameStrategy.reset()
         self.gameStrategy = None
@@ -434,6 +444,7 @@ class Application():
         self.root.after(self.afterTime*3, self.playerWinnerGif.pause)
         self.root.after(self.afterTime*3, self.mainMenu)
     
+    #prikazivanje glavnog menija uz muziku
     def mainMenu(self):
         self.menuCanvas.pack()
         pygame.mixer.music.stop()
@@ -585,7 +596,7 @@ class Application():
         self.endGameCanvas = Canvas(self.backgroundCanvas, bd=0, highlightthickness=0, relief="ridge", width = self.rootWidth, height = self.rootHeight)
         self.looserImageCanvas = self.endGameCanvas.create_image(0, 0, image=self.looserImage, anchor = NW)
         self.endGameCanvas.pack_forget()
-            
+        
         app.setMenu()
     
     #postavljanje prikaza glavnog menija
@@ -794,10 +805,19 @@ class Application():
                 xx += self.menuSpellButtonsX*2
             self.menuSpellButtons.append(tmpmenuSpellButtons)
             
-        ##    
-        self.playerDescrs = [PlayerStrategy1.descr, PlayerStrategy2.descr, "", ""]
-        self.playerSpellDescrs = [PlayerStrategy1.spellDescrs, PlayerStrategy2.spellDescrs, ["", "", "", ""], ["", "", "", ""]]
-        self.menuCanvasDescr = self.menuCanvas.create_text(10, 350,  anchor = NW, text = self.playerDescrs[0], font = ("Purisa", 15))
+        self.players = [None, None]
+        self.playerSpellDescrs = []
+        self.playerDescrs = []
+        
+        for i in range (len(self.playerStrategies)):
+            self.playerStrategies[i].setPlayer(self, False, True)
+            prototypePlayer = self.players[0]
+            self.players[0] = None
+            self.playerDescrs.append(self.playerStrategies[i].getPlayerDescr(prototypePlayer))
+            self.playerSpellDescrs.append(self.playerStrategies[i].getPlayerSpellDescrs(prototypePlayer))
+        
+        
+        self.menuCanvasDescr = self.menuCanvas.create_text(10, 350,  anchor = NW, text = self.playerDescrs[self.selectedPlayer], font = ("Purisa", 15))
         
         self.selectPlayer()
         self.mainMenu()
@@ -808,31 +828,18 @@ class Application():
         self.playerActionIndex = 0
         self.potez = 0
         
-        ##modovi srediti ih
-        if self.selectedMode == 0:
-            self.playerModes = [self.playerStrategy.getTypeOfPlayer(), self.enemyStrategy.getTypeOfPlayer()]
-            if self.playerModes[0] == "player":
-                self.modeStrategies = [PlayerModeStrategy(self), EnemyModeStrategy(self)]
-            else:
-                self.modeStrategies = [EnemyModeStrategy(self), EnemyModeStrategy(self)]
-        elif self.selectedMode == 1:
-            self.playerModes = ["human", self.enemyStrategy.getTypeOfPlayer()]
-            self.modeStrategies = [HumanModeStrategy(self), EnemyModeStrategy(self)]
-        elif self.selectedMode == 2:
-            self.playerModes = ["human", self.enemyStrategy.getTypeOfPlayer()]
-            self.modeStrategies = [HumanModeStrategy(self), PlayerModeStrategy(self)]
-        elif self.selectedMode == 3:
-            self.playerModes = ["human", "online"]
-            self.modeStrategies = [HumanModeStrategy(self), OnlineModeStrategy(self)]
+        #modovi
+        self.gameModeStrategies[self.selectedMode].setPlayerModes(self)
         
+        self.modeStrategies = [self.playerModeStrategies[self.playerModes[0]], \
+                                self.playerModeStrategies[self.playerModes[1]] ]
         
+        #oznacava da li je igrac odigrao potez
         self.playerPlayed = [0, 0]
     
-        self.backgroundCanvas.delete("all")
-    
+        #u online modu je vec odabrana pozadina
         if self.playerModes[1] != "online":
             self.selectEnvironment()
-        self.backgroundCanvas.create_image(0, 0, image = self.backgroundImage, anchor = NW)
         
         self.playerEnergyBar["maximum"] = 100
         self.playerHealthBar["maximum"] = 100
@@ -864,9 +871,10 @@ class Application():
 
         self.playerStrategy.setPlayerSpellImages(self)
         
-        
+        #postavljanje prikaza za kucice
         for i in range (len(self.spellCanvasButtons)):
             self.spellCanvasButtons[i]["image"] = self.spellImages[i]
+            #zut okvir ako je human mod
             if self.playerModes[0]=="human":
                 self.spellCanvasButtons[i]["activebackground"] = "yellow"
             self.spellHoverLabels[i]["text"] = self.players[0].spells[i].description()
@@ -889,27 +897,38 @@ class Application():
         if self.playerModes[1] == "enemy":
             self.players[1].initFuzzy(self.players[0])
         
-        #dodavanje environment buffova igracima
-        self.playerStrategy.setEnvironmentBuff(self.environmentTags[self.environment], self.players[0])
-        self.enemyStrategy.setEnvironmentBuff(self.environmentTags[self.environment], self.players[1])
-        
+        #dodavanje environment buffova igracima        
+        self.environmentStrategy.setEnvironment(self)
         
         self.menuCanvas.pack_forget()
         #sve je spremno za pocetak borbe
         self.root.after(3, self.run)
         
-        
-    def selectEnvironment(self, randEnvironment = -1):
+    #postavljanje pozadine i zvuka  
+    def selectEnvironment(self, environmentTag = ""):
+        if type(environmentTag)==int:
+            randEnvironment = environmentTag
+        elif environmentTag in self.environmentTags:
+            randEnvironment = self.environmentTags.index(environmentTag)
+        else: randEnvironment = -1
+    
         if randEnvironment == -1:
             while True:
-                randEnvironment = random.randint(0, 3)
+                randEnvironment = random.randint(0, len(self.environmentStrategies)-1)
                 if randEnvironment != self.environment:
                     break
                 
         self.environment = randEnvironment
+        
+        self.backgroundCanvas.delete("all")
+        
         self.backgroundPhoto = Image.open("resources/background" + str(randEnvironment+1)+".jpg")
         self.backgroundPhoto = self.backgroundPhoto.resize((self.rootWidth, self.rootHeight))
         self.backgroundImage = ImageTk.PhotoImage(self.backgroundPhoto)
+        
+        self.backgroundCanvas.create_image(0, 0, image = self.backgroundImage, anchor = NW)
+        
+        self.environmentStrategy = self.environmentStrategies[self.environment]
         
         pygame.mixer.music.stop()
         pygame.mixer.music.load("resources/background" + str(randEnvironment+1)+".mp3") 
@@ -919,20 +938,17 @@ class Application():
     
     #aktivira se na klik dugmeta start game i sluzi da se zapocne igra, ali se prvo moraju postaviti svi uslovi za igru
     def setGame(self):
-        if self.selectedMode < 2:
-            self.gameStrategy = OfflineGameStrategyE(self)
-        elif self.selectedMode == 2:
-            self.gameStrategy = OfflineGameStrategyP(self)
-        elif self.selectedMode == 3:
-            self.gameStrategy = self.onlineGameStrategy
+        self.gameStrategy = self.gameStrategies[self.selectedMode]
         self.gameStrategy.setGame()    
     
+    #postavljanje jacine zvuka
     def setMusicVolume(self, volume):
         self.musicVolume = int(volume)
         pygame.mixer.music.set_volume(self.musicVolume/100)
         self.pulseSound.set_volume(self.musicVolume/100)
         self.endGameSound.set_volume(self.musicVolume/100)
     
+    #aktivira se kada korisnik pritisne levu player strelicu
     def menuLeftPlayerClick(self):
         for i in range (4):         
             self.menuSpellButtons[self.selectedPlayer][i].place_forget()
@@ -942,7 +958,7 @@ class Application():
             self.selectedPlayer = self.numOfPlayers - 1
             
         self.selectPlayer()
-    
+    #aktivira se kada korisnik pritisne desnu player strelicu
     def menuRightPlayerClick(self):
         for i in range (4):         
             self.menuSpellButtons[self.selectedPlayer][i].place_forget()
@@ -952,13 +968,12 @@ class Application():
             self.selectedPlayer = 0
         
         self.selectPlayer()
-
+    #prikaz podataka odabranom igracu u glavnom meniju
     def selectPlayer(self):
         oldX = self.playerX
         oldY = self.playerY
         self.menuCanvas.move(self.menuCanvasPlayerImage, -self.playerX, -self.playerY)
-        #self.playerX = int(self.maxPlayerX + (1-self.menuPlayerImages[self.selectedPlayer].width()/self.maxPlayerWidth)*self.maxPlayerWidth/2)
-        #self.playerY = int(self.maxPlayerY + (1-self.menuPlayerImages[self.selectedPlayer].height()/self.maxPlayerHeight)*self.maxPlayerHeight/2)
+        #mucenje dok jos nisam kapirao anchor sta znaci NW a sta CENTER, ali neka ga za nauk
         self.playerX = int((1-self.menuPlayerImages[self.selectedPlayer].width()/self.maxPlayerWidth)*self.maxPlayerWidth/2)
         self.playerY = int((1-self.menuPlayerImages[self.selectedPlayer].height()/self.maxPlayerHeight)*self.maxPlayerHeight/2)
         
@@ -976,34 +991,35 @@ class Application():
         
         self.menuCanvas.itemconfig(self.menuCanvasDescr, text = self.playerDescrs[self.selectedPlayer])
     
-    
+    #aktivira se kada korisnik pritisne levu mod strelicu
     def menuLeftModeClick(self):
         self.selectedMode -= 1
         if self.selectedMode == -1:
             self.selectedMode = self.numOfModes - 1
         
         self.selectMode()
-    
+    #aktivira se kada korisnik pritisne desnu mod strelicu
     def menuRightModeClick(self):
         self.selectedMode += 1
         if self.selectedMode == self.numOfModes:
             self.selectedMode = 0
         
         self.selectMode()
-        
+    #prikaz imena moda    
     def selectMode(self):
         self.menuCanvas.itemconfig(self.menuModeImage, image = self.menuModeImages[self.selectedMode])
     
-    
+    #prikazivanje opisa spella na hover kucice u meniju
     def hoverMenuSpell(self, e):
         for i in range (4):
             if e.widget == self.menuSpellButtons[self.selectedPlayer][i]:
                 self.menuCanvas.itemconfig(self.menuCanvasDescr, text = self.playerSpellDescrs[self.selectedPlayer][i])
                 break
-    
+    #skrivanje prikazivanja opisa spella na hover kucice u meniju
     def unhoverMenuSpell(self, e):
         self.menuCanvas.itemconfig(self.menuCanvasDescr, text = self.playerDescrs[self.selectedPlayer])
-            
+        
+    #prikazivanje opisa spella na hover kucice u spellcanvasu igre        
     def hoverCanvasSpell(self, e):
         if self.playerPlayed[self.side] == 0 and self.playerModes[self.side] == "human" and e.widget["state"]!="disabled": 
             e.widget["bg"] = "yellow"
@@ -1011,7 +1027,7 @@ class Application():
             if e.widget == self.spellCanvasButtons[i]:
                 self.spellHoverLabels[i].place(x = self.spellHoverLabelsPlaces[i], y = 360, anchor = SW)
                 break
-            
+    #skrivanje opisa spella u spellcanvasu igre              
     def unhoverCanvasSpell(self,e):
         if self.playerPlayed[self.side] == 0 and self.playerModes[self.side] == "human":
             e.widget["bg"] = self.lightBrown
@@ -1019,7 +1035,8 @@ class Application():
             if e.widget == self.spellCanvasButtons[i]:
                 self.spellHoverLabels[i].place_forget()
                 break
-    
+                
+    #prikazivanje opisa buffa igraca na hover slike u statuscanvasu igre 
     def hoverBuffsPlayer(self, e):
         for i in range (len(self.playerBuffImages)):
             x1, y1 = e.widget.coords(self.playerBuffImages[i])
@@ -1028,7 +1045,7 @@ class Application():
                 self.playerBuffHoverLabels[i].place(x = self.playerBuffHoverLabelsPlaces[i], y = 100, anchor = NW)
                 self.playerBuffHoverLabels[i]["text"] = self.playerBuffDescrs[i]
             else: self.playerBuffHoverLabels[i].place_forget()
-    
+    #prikazivanje opisa buffa protivnika na hover slike u statuscanvasu igre 
     def hoverBuffsEnemy(self, e):
         for i in range (len(self.enemyBuffImages)):
             x2, y1 = e.widget.coords(self.enemyBuffImages[i])
@@ -1036,14 +1053,15 @@ class Application():
             if e.x >= x1 and e.x <x2 and e.y >= y1 and e.y < y2 and i<len(self.enemyBuffDescrs):
                 self.enemyBuffHoverLabels[i].place(x = self.enemyBuffHoverLabelsPlaces[i], y = 100, anchor = NE)
                 self.enemyBuffHoverLabels[i]["text"] = self.enemyBuffDescrs[i]
-            else: self.enemyBuffHoverLabels[i].place_forget()
-                
+            else: self.enemyBuffHoverLabels[i].place_forget()               
+    #sakrivanje prikaza opisa buffa u statuscanvasu igre             
     def unhoverBuffs(self, e):
         for i in range (len(self.playerBuffHoverLabels)):
             self.playerBuffHoverLabels[i].place_forget()
         for i in range (len(self.enemyBuffHoverLabels)):
             self.enemyBuffHoverLabels[i].place_forget()
-    
+    #provera za promenu prikazivanja opisa buffa na hover slike u statuscanvasima igre 
+    #ako korisnik nije mrdao misa a naisao je sledeci potez
     def checkHoverBuffs(self):
         x = self.root.winfo_pointerx()-self.playerStatusCanvas.winfo_rootx()
         y = self.root.winfo_pointery()-self.playerStatusCanvas.winfo_rooty()
@@ -1066,28 +1084,29 @@ class Application():
                 self.enemyBuffHoverLabels[i].place(x = self.enemyBuffHoverLabelsPlaces[i], y = 100, anchor = NE)
                 self.enemyBuffHoverLabels[i]["text"] = self.enemyBuffDescrs[i]
             else: self.enemyBuffHoverLabels[i].place_forget()
-    
+    #aktivira se na klik misem korisnika u human modu da bi se odigrao potez
     def selectSpell(self, e):
         if e.widget["state"]!="disabled" and self.side == 0 and self.playerPlayed[0] == 0 and self.playerModes[0] == "human" and self.players[0].stunned == False:
             self.playerPlayed[0] = 1
             self.playerActionIndex = self.spellCanvasButtons.index(e.widget)
             self.root.after_cancel(self.clockAfter)
             self.run()
-            
+    #preskakanje poteza ako korisnik nije odigrao potez i ako je u human modu
+    #aktivira se nakon 10 sekundi ako je to potrebno
     def checkTimeToPlay(self, potez):
-        print("CHECKING "+str(potez))
+        print("CHECKING MOVE "+str(potez))
         if self.potez == potez and self.side == 0 and self.playerPlayed[0] == 0:
             self.playerPlayed[0] = 1
             print("SKIPPING MOVE")
             self.spellCanvas.itemconfig(self.playerClockText, text = "0")
             self.playerActionIndex = -1
             self.run()
-    
+    #aktivira se na svaki sekund kako bi se prikazalo otkucavanje vremena u human modu
     def updateClok(self, potez, number):
         if self.potez == potez and self.side == 0 and self.playerPlayed[0] == 0:
             self.spellCanvas.itemconfig(self.playerClockText, text = str(number))
     
-    
+#gasenje svih niti procesa    
 def doExit():
     os._exit(0)
     

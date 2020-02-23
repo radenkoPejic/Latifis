@@ -11,8 +11,8 @@ slowAfter - najvise usporen prikaz kada je igrac stunovan
 normalAfter - normalan prikaz kada igrac igra sve spellove
 '''   
 class EnemyGif2:
-    def __init__(self, parent, canvas, x, y, app, playerIndex = 1):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, app, playerIndex = 1):
+        self.root = root
         self.canvas = canvas
         self.playerIndex = playerIndex
         
@@ -47,9 +47,9 @@ class EnemyGif2:
             return
             
         if not self.pausing and counter<len(self.sequence):
-            self.parent.after(self.after, lambda: self.animate(counter+1))
+            self.root.after(self.after, lambda: self.animate(counter+1))
         else: 
-            self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate(0))
     
     def stop(self):
         self.animating = False
@@ -84,8 +84,8 @@ class EnemyGif2:
 Gif koji se zaustavlja a na pocetku prikazuje posledice udara
 '''                       
 class EnemyAttackGif2:
-    def __init__(self, parent, canvas, x, y, app, spellIndex, playerIndex = 1):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, app, spellIndex, playerIndex = 1):
+        self.root = root
         self.canvas = canvas
             
         self.app = app
@@ -118,8 +118,8 @@ class EnemyAttackGif2:
             return
             
         if not self.pausing:
-            self.parent.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
-        else: self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
+        else: self.root.after(self.after, lambda: self.animate(0))
         
     
     def stop(self):
@@ -148,8 +148,8 @@ class EnemyAttackGif2:
 Gif koji se neprstano vrti
 '''   
 class EnemyHealGif2:
-    def __init__(self, parent, canvas, x, y, app, playerIndex = 1):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, app, playerIndex = 1):
+        self.root = root
         self.canvas = canvas
                 
         if playerIndex == 1:
@@ -173,8 +173,8 @@ class EnemyHealGif2:
             return
             
         if not self.pausing:
-            self.parent.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
-        else: self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
+        else: self.root.after(self.after, lambda: self.animate(0))
     
     def stop(self):
         self.animating = False
@@ -192,8 +192,8 @@ class EnemyHealGif2:
 Gif koji se neprstano vrti
 '''           
 class EnemyRewindGif2:
-    def __init__(self, parent, canvas, x, y, app, playerIndex = 1):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, app, playerIndex = 1):
+        self.root = root
         self.canvas = canvas
         
         if playerIndex == 1:
@@ -217,8 +217,8 @@ class EnemyRewindGif2:
             return
             
         if not self.pausing:
-            self.parent.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
-        else: self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
+        else: self.root.after(self.after, lambda: self.animate(0))
     
     def stop(self):
         self.animating = False
@@ -236,8 +236,8 @@ class EnemyRewindGif2:
 Gif koji se zaustavlja
 '''  
 class EnemyWeakenAttackGif2:
-    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
+        self.root = root
         self.canvas = canvas
         self.afterTime = afterTime//2
             
@@ -270,13 +270,13 @@ class EnemyWeakenAttackGif2:
             return
             
         if self.pausing:
-            self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate(0))
             
         elif not self.pausing:
             self.canvas.itemconfig(self.image, image = self.sequence[counter])
 
             if counter+1<len(self.sequence):
-                self.parent.after(self.after, lambda: self.animate(counter+1))
+                self.root.after(self.after, lambda: self.animate(counter+1))
             else:
                 self.canvas.itemconfig(self.image, state="hidden")
                 self.pausing = True
@@ -289,7 +289,7 @@ class EnemyWeakenAttackGif2:
                     healthText = str(int(-spell.damageDone))
                     self.app.showText(self.playerTexts, healthText, spell.color)    
                         
-                self.parent.after(self.after, lambda: self.animate(0))
+                self.root.after(self.after, lambda: self.animate(0))
         
     
     def stop(self):
@@ -308,8 +308,8 @@ class EnemyWeakenAttackGif2:
 Gif koji se neprstano vrti
 '''           
 class EnemyDodgeGif2:
-    def __init__(self, parent, canvas, x, y, app, playerIndex = 1):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, app, playerIndex = 1):
+        self.root = root
         self.canvas = canvas
         
         if playerIndex == 1:
@@ -333,8 +333,8 @@ class EnemyDodgeGif2:
             return
             
         if not self.pausing:
-            self.parent.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
-        else: self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
+        else: self.root.after(self.after, lambda: self.animate(0))
     
     def stop(self):
         self.animating = False

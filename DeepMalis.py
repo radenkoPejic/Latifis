@@ -111,7 +111,7 @@ class DeepMalis2(DeepMalis):
         super().__init__(health, damage, energy, tag, exploration_factor)
         self.spells = []
         self.spells.append(Spell.BurnAttack(1,150,60))
-        self.spells.append(Spell.Long_MissHeal(6,300,10,4)) #promena
+        self.spells.append(Spell.LongMissHeal(6,300,10,4)) #promena
         self.spells.append(Spell.Charge(0,0,400))
         self.spells.append(Spell.Stun(7,200,3))
         self.alwaysCastableSpellIndex = 2

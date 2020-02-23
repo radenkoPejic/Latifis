@@ -171,7 +171,7 @@ class Heal(DefenseSpell):
         else:
             raise Exception()
     def description(self):
-        return "Heal\nEnergy: " + str(self.energy) + "\nCooldown: " + str(self.cooldown)
+        return self.__class__.__name__ + "\nEnergy: " + str(self.energy) + "\nCooldown: " + str(self.cooldown)
 
 
 class Charge(DefenseSpell):
@@ -229,42 +229,44 @@ class BuffsSpell(Spell):
         pass
     def addBuff(self):
         raise NotImplementedError("Subclass must implement abstract method")
+    def description(self):
+        return "\nAdds "+self.buff.__class__.__name__+" to istelf"
 
-class Long_FullHeal(BuffsSpell):
+class LongFullHeal(BuffsSpell):
     def addBuff(self,duration, percent):
         self.buff = Buff.HealFullBuff(duration, percent)
     def description(self):
-        return "LongFullHeal\nHeal: "+ str(self.percent) +"% of maximum health\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) 
+        return self.__class__.__name__ + "\nHeal: "+ str(self.percent) +"% of maximum health\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) + super().description()
 
-class Long_CurrHeal(BuffsSpell):
+class LongCurrHeal(BuffsSpell):
     def addBuff(self,duration, percent):
         self.buff = Buff.HealCurrBuff(duration, percent)
     def description(self):
-        return "LongCurrHeal\nHeal: "+ str(self.percent) +"% of current health\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) 
+        return self.__class__.__name__ + "\nHeal: "+ str(self.percent) +"% of current health\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) + super().description()
 
-class Long_MissHeal(BuffsSpell):
+class LongMissHeal(BuffsSpell):
     def addBuff(self,duration, percent):
         self.buff = Buff.HealMissBuff(duration, percent)
     def description(self):
-        return "LongMissHeal\nHeal: "+ str(self.percent) +"% of maximum-current health\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) 
+        return self.__class__.__name__ + "\nHeal: "+ str(self.percent) +"% of maximum-current health\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) + super().description()
 
 class Flexible(BuffsSpell):
     def addBuff(self, duration, percent):
         self.buff = Buff.FlexBuff(duration, percent)
     def description(self):
-        return "Flexible\nDodge: "+ str(self.percent) +"% of current dodge\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) 
+        return self.__class__.__name__ + "\nDodge: "+ str(self.percent) +"% of current dodge\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) + super().description() 
 
 class Protection(BuffsSpell):
     def addBuff(self, duration, percent):
         self.buff = Buff.ProtectionBuff(duration, percent)
     def description(self):
-        return "Protection\nProtect: "+ str(self.percent) +"% of current protection\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) 
+        return self.__class__.__name__ + "\nProtect: "+ str(self.percent) +"% of current protection\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) + super().description() 
 
 class Weaken(BuffsSpell):
     def addBuff(self, duration, percent):
         self.buff = Buff.WeakenBuff(duration, percent)
     def description(self):
-        return "Weaken\nWeaken: "+ str(self.percent) +"% of current weaken\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) 
+        return self.__class__.__name__ + "\nWeaken: "+ str(self.percent) +"% of current weaken\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) + super().description() 
 
 class Stun(Spell):
     def __init__(self, cooldown, energy, duration):
@@ -291,7 +293,7 @@ class Stun(Spell):
     def addBuff(self, duration):
         self.buff = Buff.StunBuff(duration)
     def description(self):
-        return "Stun\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) + "\nOther player stunned if spell is not dodged"
+        return self.__class__.__name__ + "\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) + "\nOther player stunned if spell is not dodged"
         
 class Rewind(Spell):
     def __init__(self, cooldown, energy, duration):
@@ -304,10 +306,10 @@ class Rewind(Spell):
                 self.curr_cooldown = self.cooldown
                 c1.energy -= self.energy
                 for spell in c1.spells:
-                    spell.curr_cooldown -= self.duration##da li treba na 0 ili smanjuje za duration stvarno?
+                    spell.curr_cooldown -= self.duration
                     if(spell.curr_cooldown<0):
                         spell.curr_cooldown = 0
         else:
             raise Exception()
     def description(self):
-        return "Rewind\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) + "\nReduces cooldown of each spell to zero"
+        return self.__class__.__name__ + "\nDuration: " + str(self.duration) + "\nEnergy: "+ str(self.energy) + "\nCooldown: " + str(self.cooldown) + "\nReduces cooldown of each spell by " + str(self.duration) + " the most" 

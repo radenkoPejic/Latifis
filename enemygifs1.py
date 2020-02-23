@@ -11,8 +11,8 @@ slowAfter - najvise usporen prikaz kada je igrac stunovan
 normalAfter - normalan prikaz kada igrac igra sve spellove
 '''           
 class EnemyGif1:
-    def __init__(self, parent, canvas, x, y, app, playerIndex = 1):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, app, playerIndex = 1):
+        self.root = root
         self.canvas = canvas
         self.playerIndex = playerIndex
         
@@ -25,7 +25,7 @@ class EnemyGif1:
             self.enemyTexts = app.playerTexts
             self.sequence = [ImageTk.PhotoImage(img.transpose(Image.FLIP_LEFT_RIGHT)) for img in ImageSequence.Iterator(Image.open("resources/enemy1.gif"))]
             self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = SW)
-            self.hitX = app.rootWidth - x + 290 #mesto za primanje udarca
+            self.hitX = app.rootWidth - (x - 290) #mesto za primanje udarca
             
             
         self.dodgeGifs = app.dodgeGifs
@@ -47,9 +47,9 @@ class EnemyGif1:
             return
             
         if not self.pausing and counter<len(self.sequence):
-            self.parent.after(self.after, lambda: self.animate(counter+1))
+            self.root.after(self.after, lambda: self.animate(counter+1))
         else: 
-            self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate(0))
     
     def stop(self):
         self.animating = False
@@ -79,13 +79,13 @@ class EnemyGif1:
                     self.dodgeGifs[1-self.playerIndex].goOn()
                     
         self.app.showText(self.enemyTexts, ispis, color)        
-        
+ 
 '''
 Gif u pokretu koji se zaustavlja i uvecava
 '''     
 class EnemyAttackGif1:
-    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
+        self.root = root
         self.canvas = canvas
         self.x0 = x
         self.x = x
@@ -121,7 +121,7 @@ class EnemyAttackGif1:
             self.image = self.canvas.create_image(app.rootWidth - x, y, image=self.sequence[0], anchor = W,  state = "hidden")
             self.x0 = self.x = app.rootWidth - x
         
-       
+        self.width = self.sequence[len(self.sequence)-1].width()/2
         self.after = int(30*afterTime/1500)
         self.animating = True
         self.pausing = True
@@ -131,24 +131,24 @@ class EnemyAttackGif1:
         self.attackSound.set_volume(self.app.musicVolume/100)
         self.criticalHitSound.set_volume(self.app.musicVolume/100)
         self.animate(0)
-        
+                
     def animate(self, counter):
         if not self.animating:
             return
-            
-        if self.pausing:
-            self.parent.after(self.after, lambda: self.animate(0))
-            
-        elif not self.pausing:
-            self.x -= self.dx
-            self.y += self.dy
-            self.canvas.move(self.image, -self.dx, self.dy)
+    
+        if not self.pausing:  #prikazivanje
             self.canvas.itemconfig(self.image, image = self.sequence[counter])
-
-            if counter+1<len(self.sequence):
-                self.parent.after(self.after, lambda: self.animate(counter+1))
+            self.canvas.itemconfig(self.image, state="normal")
+            
+            #kretanje
+            if counter+1<len(self.sequence) and ((self.playerIndex == 0 and self.x + self.width < self.app.enemyGif.hitX) or (self.playerIndex == 1 and self.x - self.width > self.app.playerGif.hitX)):                   
+                self.x -= self.dx
+                self.y += self.dy
+                self.canvas.move(self.image, -self.dx, self.dy)
+                
             else: #zaustavljanje i prikazivanje posledica udara
                 self.canvas.itemconfig(self.image, state="hidden")
+                self.canvas.itemconfig(self.image, image = self.sequence[0])
                 self.pausing = True
                 spell = self.app.players[self.playerIndex].spells[self.spellIndex]
                 
@@ -157,10 +157,15 @@ class EnemyAttackGif1:
                         self.criticalHitSound.play()
                         self.canvas.itemconfig(self.app.criticalImages[1-self.playerIndex], state = "normal")
                     healthText = str(int(-spell.damageDone))
-                    self.app.showText(self.playerTexts, healthText, spell.color)    
-                        
-                self.parent.after(self.after, lambda: self.animate(0))
-        
+                    self.app.showText(self.playerTexts, healthText, spell.color)   
+                
+        else: #skrivanje
+            self.canvas.itemconfig(self.image, state="hidden")
+           
+            
+        if not self.pausing:
+            self.root.after(self.after, lambda: self.animate(counter+1))
+        else: self.root.after(self.after, lambda: self.animate(0))    
     
     def stop(self):
         self.animating = False
@@ -181,8 +186,8 @@ class EnemyAttackGif1:
 Gif koji se zaustavlja
 '''            
 class EnemyEnergyAttackGif1:
-    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
+        self.root = root
         self.canvas = canvas
         self.afterTime = afterTime//2
             
@@ -215,13 +220,13 @@ class EnemyEnergyAttackGif1:
             return
             
         if self.pausing:
-            self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate(0))
             
         elif not self.pausing:
             self.canvas.itemconfig(self.image, image = self.sequence[counter])
 
             if counter+1<len(self.sequence):
-                self.parent.after(self.after, lambda: self.animate(counter+1))
+                self.root.after(self.after, lambda: self.animate(counter+1))
             else: #zaustavljanje i prikazivanje posledica udara
                 self.canvas.itemconfig(self.image, state="hidden")
                 self.pausing = True
@@ -234,7 +239,7 @@ class EnemyEnergyAttackGif1:
                     healthText = str(int(-spell.damageDone))
                     self.app.showText(self.playerTexts, healthText, spell.color)    
                         
-                self.parent.after(self.after, lambda: self.animate(0))
+                self.root.after(self.after, lambda: self.animate(0))
         
     
     def stop(self):
@@ -253,8 +258,8 @@ class EnemyEnergyAttackGif1:
 Gif koji se zaustavlja
 '''            
 class EnemyBurnAttackGif1:
-    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
+        self.root = root
         self.canvas = canvas
         self.afterTime = afterTime//2
             
@@ -287,13 +292,13 @@ class EnemyBurnAttackGif1:
             return
             
         if self.pausing:
-            self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate(0))
             
         elif not self.pausing:
             self.canvas.itemconfig(self.image, image = self.sequence[counter])
 
             if counter+1<len(self.sequence):
-                self.parent.after(self.after, lambda: self.animate(counter+1))
+                self.root.after(self.after, lambda: self.animate(counter+1))
             else: #zaustavljanje i prikazivanje posledica udara
                 self.canvas.itemconfig(self.image, state="hidden")
                 self.pausing = True
@@ -306,7 +311,7 @@ class EnemyBurnAttackGif1:
                     healthText = str(int(-spell.damageDone))
                     self.app.showText(self.playerTexts, healthText, spell.color)    
                         
-                self.parent.after(self.after, lambda: self.animate(0))
+                self.root.after(self.after, lambda: self.animate(0))
         
     
     def stop(self):
@@ -325,8 +330,8 @@ class EnemyBurnAttackGif1:
 Gif koji se zaustavlja
 '''    
 class EnemyWeakenAttackGif1:
-    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, afterTime, app, spellIndex, playerIndex = 1):
+        self.root = root
         self.canvas = canvas
         self.afterTime = afterTime//2
             
@@ -359,13 +364,13 @@ class EnemyWeakenAttackGif1:
             return
             
         if self.pausing:
-            self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate(0))
             
         elif not self.pausing:
             self.canvas.itemconfig(self.image, image = self.sequence[counter])
 
             if counter+1<len(self.sequence):
-                self.parent.after(self.after, lambda: self.animate(counter+1))
+                self.root.after(self.after, lambda: self.animate(counter+1))
             else: #zaustavljanje i prikazivanje posledica udara
                 self.canvas.itemconfig(self.image, state="hidden")
                 self.pausing = True
@@ -377,7 +382,7 @@ class EnemyWeakenAttackGif1:
                         self.canvas.itemconfig(self.app.criticalImages[1-self.playerIndex], state = "normal")
                     healthText = str(int(-spell.damageDone))
                     self.app.showText(self.playerTexts, healthText, spell.color)    
-                self.parent.after(self.after, lambda: self.animate(0))
+                self.root.after(self.after, lambda: self.animate(0))
         
     
     def stop(self):
@@ -396,8 +401,8 @@ class EnemyWeakenAttackGif1:
 Gif koji se neprstano vrti
 '''    
 class EnemyDodgeGif1:
-    def __init__(self, parent, canvas, x, y, app, playerIndex = 1):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, app, playerIndex = 1):
+        self.root = root
         self.canvas = canvas
         
         if playerIndex == 1:
@@ -421,8 +426,8 @@ class EnemyDodgeGif1:
             return
             
         if not self.pausing:
-            self.parent.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
-        else: self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
+        else: self.root.after(self.after, lambda: self.animate(0))
     
     def stop(self):
         self.animating = False

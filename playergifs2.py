@@ -17,8 +17,8 @@ maxLimit - prikaz kada je igrac napao i ispalio kuglu
 midLimit - osnovni prikaz
 '''    
 class PlayerGif2:
-    def __init__(self, parent, canvas, x, y, afterTime, app, playerIndex = 0):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, afterTime, app, playerIndex = 0):
+        self.root = root
         self.canvas = canvas
         self.sequence = []
         self.afterTime = afterTime
@@ -69,9 +69,9 @@ class PlayerGif2:
             return
         
         if self.pausing or self.limit==counter==self.midLimit: 
-            self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate(0))
         else:
-            self.parent.after(self.after, lambda: self.animate(counter+1))
+            self.root.after(self.after, lambda: self.animate(counter+1))
     
     def stop(self):
         self.animating = False
@@ -124,8 +124,8 @@ class PlayerGif2:
 Gif koji se zaustavlja i iskace preko celog ekrana nakon sto je igrac pobedio u borbi
 '''
 class PlayerWinnerGif2:
-    def __init__(self, parent, canvas, x, y, app):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, app):
+        self.root = root
         self.canvas = canvas
         
         self.sequence = [ImageTk.PhotoImage(img) for img in ImageSequence.Iterator(Image.open("resources/player2winner.gif"))]
@@ -137,22 +137,15 @@ class PlayerWinnerGif2:
         self.canvas.itemconfig(self.image, state="hidden")
         self.sound = pygame.mixer.Sound("resources/playerwinner.wav")
         self.sound.set_volume(app.musicVolume/100)
-        self.animate(0)
         
     def animate(self, counter):
         if not self.animating:
             return
             
-        if self.pausing:
-            self.parent.after(self.after, lambda: self.animate(0))
-            
         elif not self.pausing:
             self.canvas.itemconfig(self.image, image = self.sequence[counter])
             if counter+1<len(self.sequence):
-                self.parent.after(self.after, lambda: self.animate(counter+1))
-            else:
-                self.pausing = True
-                self.parent.after(self.after, lambda: self.animate(0))
+                self.root.after(self.after, lambda: self.animate(counter+1))
              
     
     def stop(self):
@@ -168,13 +161,14 @@ class PlayerWinnerGif2:
         self.canvas.pack()
         self.canvas.itemconfig(self.image, state="normal")
         self.sound.play()
+        self.animate(0)
         
 '''
 Gif u pokretu koji se zaustavlja sa zvukom pri ispaljivanju i pogotku 
 '''        
 class PlayerAttackGif2:
-    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex, playerIndex = 0):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, afterTime, app, spellIndex, playerIndex = 0):
+        self.root = root
         self.canvas = canvas
         self.x0 = x
         self.x = x
@@ -245,8 +239,8 @@ class PlayerAttackGif2:
            
             
         if self.enabled and not self.pausing:
-            self.parent.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
-        else: self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
+        else: self.root.after(self.after, lambda: self.animate(0))
     
     def stop(self):
         self.animating = False
@@ -269,8 +263,8 @@ class PlayerAttackGif2:
 Gif koji se neprstano vrti
 '''            
 class PlayerFlexGif2:
-    def __init__(self, parent, canvas, x, y, app, playerIndex = 0):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, app, playerIndex = 0):
+        self.root = root
         self.canvas = canvas
         
         if playerIndex == 0:
@@ -294,8 +288,8 @@ class PlayerFlexGif2:
             return
             
         if not self.pausing:
-            self.parent.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
-        else: self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
+        else: self.root.after(self.after, lambda: self.animate(0))
     
     def stop(self):
         self.animating = False
@@ -313,8 +307,8 @@ class PlayerFlexGif2:
 Gif koji se neprstano vrti
 '''    
 class PlayerChargeGif2:
-    def __init__(self, parent, canvas, x, y, app, playerIndex = 0):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, app, playerIndex = 0):
+        self.root = root
         self.canvas = canvas
         
         if playerIndex == 0:
@@ -338,8 +332,8 @@ class PlayerChargeGif2:
             return
             
         if not self.pausing:
-            self.parent.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
-        else: self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
+        else: self.root.after(self.after, lambda: self.animate(0))
     
     def stop(self):
         self.animating = False
@@ -357,8 +351,8 @@ class PlayerChargeGif2:
 Gif koji se zaustavlja
 '''        
 class PlayerDrainGif2:
-    def __init__(self, parent, canvas, x, y, afterTime, app, spellIndex, playerIndex = 0):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, afterTime, app, spellIndex, playerIndex = 0):
+        self.root = root
         self.canvas = canvas   
         self.app = app
         self.spellIndex = spellIndex
@@ -388,13 +382,13 @@ class PlayerDrainGif2:
             return
             
         if self.pausing:
-            self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate(0))
             
         elif not self.pausing:
             self.canvas.itemconfig(self.image, image = self.sequence[counter])
 
             if counter+1<len(self.sequence):
-                self.parent.after(self.after, lambda: self.animate(counter+1))
+                self.root.after(self.after, lambda: self.animate(counter+1))
             else: #zaustavljanje i prikazivanje posledica udara
                 self.canvas.itemconfig(self.image, state="hidden")
                 self.pausing = True
@@ -407,7 +401,7 @@ class PlayerDrainGif2:
                     healthText = str(int(-spell.damageDone))
                     self.app.showText(self.enemyTexts, healthText, spell.color)
                         
-                self.parent.after(self.after, lambda: self.animate(0))
+                self.root.after(self.after, lambda: self.animate(0))
         
     
     def stop(self):
@@ -426,8 +420,8 @@ class PlayerDrainGif2:
 Gif koji se neprstano vrti
 '''    
 class PlayerDodgeGif2:
-    def __init__(self, parent, canvas, x, y, app, playerIndex = 0):
-        self.parent = parent
+    def __init__(self, root, canvas, x, y, app, playerIndex = 0):
+        self.root = root
         self.canvas = canvas
         
         if playerIndex == 0:
@@ -451,8 +445,8 @@ class PlayerDodgeGif2:
             return
             
         if not self.pausing:
-            self.parent.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
-        else: self.parent.after(self.after, lambda: self.animate(0))
+            self.root.after(self.after, lambda: self.animate((counter+1)%len(self.sequence)))
+        else: self.root.after(self.after, lambda: self.animate(0))
     
     def stop(self):
         self.animating = False

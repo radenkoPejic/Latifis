@@ -30,7 +30,7 @@ class Malis(rootPlayer):
         self.buffs = []
         self.spells.append(Spell.Attack(0,100,50))
         #self.spells.append(Spell.Heal(2,200,200))
-        self.spells.append(Spell.Long_MissHeal(6,300,20,4))
+        self.spells.append(Spell.LongMissHeal(6,300,20,4))
         self.spells.append(Spell.Charge(0,0,600))
         self.spells.append(Spell.Stun(7,200,3))
         ###Player
