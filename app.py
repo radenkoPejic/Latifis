@@ -612,22 +612,15 @@ class Application():
         self.maxPlayerX = 515
         self.maxPlayerY = 10
         
+        #prikaz slika igraca
         self.selectedPlayer = 0
         self.numOfPlayers = len(self.playerStrategies)
-        
         self.menuPlayerImages = []
         
-        self.menuPlayerPhoto1 = Image.open("resources/player1.png")
-        self.menuPlayerImages.append(ImageTk.PhotoImage(self.menuPlayerPhoto1))
-        
-        self.menuPlayerPhoto2 = Image.open("resources/player2.png")
-        self.menuPlayerImages.append(ImageTk.PhotoImage(self.menuPlayerPhoto2))
-        
-        self.menuPlayerPhoto3 = Image.open("resources/enemy1.png")
-        self.menuPlayerImages.append(ImageTk.PhotoImage(self.menuPlayerPhoto3))
-        
-        self.menuPlayerPhoto4 = Image.open("resources/enemy2.png")
-        self.menuPlayerImages.append(ImageTk.PhotoImage(self.menuPlayerPhoto4))
+        for i in range (self.numOfPlayers):
+            menuPlayerPhoto = Image.open(self.playerStrategies[i].getMenuImagePath())
+            self.menuPlayerImages.append(ImageTk.PhotoImage(menuPlayerPhoto))
+ 
         
         self.menuCanvasPlayerImage = self.menuCanvas.create_image(self.maxPlayerX, self.maxPlayerY, image = self.menuPlayerImages[self.selectedPlayer], anchor = NW)
         self.playerX = int((1-self.menuPlayerImages[self.selectedPlayer].width()/self.maxPlayerWidth)*self.maxPlayerWidth/2)
@@ -642,6 +635,7 @@ class Application():
             x += 110
             
         
+        #skaler za zvuk
         self.menuScaler = Scale(self.menuCanvas, command = self.setMusicVolume, from_=100, to=0, bd = 1,  bg = self.darkBrown, highlightbackground = self.lightBrown, \
         font = ("Purisa", 10, "bold"), fg = self.lightBrown, sliderlength = 50, troughcolor = self.lightBrown, activebackground = self.darkBrown)
         self.menuScaler.place(x = 20, y = 20, width = 48, height = 150)
@@ -652,26 +646,15 @@ class Application():
         self.menuSpeakerImage = ImageTk.PhotoImage(self.menuSpeakerPhoto)
         self.menuCanvas.create_image(20, 180, image = self.menuSpeakerImage, anchor = NW)   
         
+        #prikaz modova igre
         self.selectedMode = 0
+        self.numOfModes = len(self.gameModeStrategies)
         self.menuModeImages = []
         
-        self.menuModePhoto1 = Image.open("resources/modepve.png")
-        self.menuModePhoto1 = self.menuModePhoto1.resize((180, 60))
-        self.menuModeImages.append(ImageTk.PhotoImage(self.menuModePhoto1))
-        
-        self.menuModePhoto2 = Image.open("resources/modehve.png")
-        self.menuModePhoto2 = self.menuModePhoto2.resize((180, 60))
-        self.menuModeImages.append(ImageTk.PhotoImage(self.menuModePhoto2))
-        
-        self.menuModePhoto3 = Image.open("resources/modehvp.png")
-        self.menuModePhoto3 = self.menuModePhoto3.resize((180, 60))
-        self.menuModeImages.append(ImageTk.PhotoImage(self.menuModePhoto3))
-        
-        self.menuModePhoto4 = Image.open("resources/modehvh.png")
-        self.menuModePhoto4 = self.menuModePhoto4.resize((180, 60))
-        self.menuModeImages.append(ImageTk.PhotoImage(self.menuModePhoto4))
-        
-        self.numOfModes = len(self.menuModeImages)
+        for i in range (self.numOfModes):
+            menuModePhoto = Image.open(self.gameModeStrategies[i].getImagePath())
+            menuModePhoto = menuModePhoto.resize((180, 60))
+            self.menuModeImages.append(ImageTk.PhotoImage(menuModePhoto))
         
         self.menuModeImage = self.menuCanvas.create_image(185, 20, image = self.menuModeImages[0], anchor = NW)
 
@@ -708,7 +691,7 @@ class Application():
         highlightcolor="brown", highlightbackground="brown", borderwidth=4, activebackground = self.lightBrown)
         self.startGameButton.place(x = 165, y = 170, width = 220, height = 60)
         
-        
+        #prikaz kucica u meniju
         self.menuSpellPhotoSize = 60
         self.menuSpellButtonsX = 55
         self.menuSpellImages = []
@@ -804,7 +787,8 @@ class Application():
                 
                 xx += self.menuSpellButtonsX*2
             self.menuSpellButtons.append(tmpmenuSpellButtons)
-            
+        
+        #prikaz opisa igraca i spellova u meniju
         self.players = [None, None]
         self.playerSpellDescrs = []
         self.playerDescrs = []

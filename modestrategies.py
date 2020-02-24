@@ -4,22 +4,36 @@ from playerstrategies import *
 class ModeStrategy():
     def setPlayerModes(self, app):
         pass
+    def getImagePath(self):
+        pass
+        
 #PvE mod igre(offline) - prvi igrac je ili player ili enemy, drugi igrac je enemy
 class ModePvEStrategy(ModeStrategy):
     def setPlayerModes(self, app):
-        app.playerModes = [app.playerStrategy.getTypeOfPlayer(), app.enemyStrategy.getTypeOfPlayer()]        
+        app.playerModes = [app.playerStrategy.getTypeOfPlayer(), app.enemyStrategy.getTypeOfPlayer()]   
+    def getImagePath(self):
+        return "resources/modepve.png"
+        
 #HvE mod igre(offline) - prvi igrac je human, drugi igrac je enemy       
 class ModeHvEStrategy(ModeStrategy):
     def setPlayerModes(self, app):
         app.playerModes = ["human", app.enemyStrategy.getTypeOfPlayer()]
+    def getImagePath(self):
+        return "resources/modehve.png"
+        
 #HvP mod igre(offline) - prvi igrac je human, drugi igrac je player         
 class ModeHvPStrategy(ModeStrategy):
     def setPlayerModes(self, app):
         app.playerModes = ["human", app.enemyStrategy.getTypeOfPlayer()]
+    def getImagePath(self):
+        return "resources/modehvp.png"
+        
 #HvH mod igre(online) - prvi igrac je human, drugi igrac je human      
 class ModeHvHStrategy(ModeStrategy):
     def setPlayerModes(self, app):
         app.playerModes = ["human", "online"]
+    def getImagePath(self):
+        return "resources/modehvh.png"
         
         
 #osnovna klasa za odredjivanje odigravanja poteza vezanog za moda igraca

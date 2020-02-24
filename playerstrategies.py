@@ -207,6 +207,9 @@ class PlayerStrategy1(PEStrategy1): #Charizard Y - narandzasti
 
     def getTypeOfPlayer(self):
         return "player"
+        
+    def getMenuImagePath(self):
+        return "resources/player1.png"
     
     def stop(self, app):
         app.playerGif.stop()
@@ -266,6 +269,9 @@ class PlayerStrategy2(PEStrategy2): #Charizard X - sivo-plavi
         
     def getTypeOfPlayer(self):
         return "player"
+        
+    def getMenuImagePath(self):
+        return "resources/player2.png"
     
     def stop(self, app):
         app.playerGif.stop()
@@ -323,6 +329,9 @@ class PlayerStrategy3(PEStrategy3): #Enemy 1 - tamni, flipovan
     def getTypeOfPlayer(self):
         return "enemy"
     
+    def getMenuImagePath(self):
+        return "resources/enemy1.png"
+    
     def stop(self, app):
         app.playerGif.stop()
         for gif in app.playerSpellGifs:
@@ -378,6 +387,9 @@ class PlayerStrategy4(PEStrategy4): #Enemy 2 - plavi, flipovan
             
     def getTypeOfPlayer(self):
         return "enemy"
+        
+    def getMenuImagePath(self):
+        return "resources/enemy2.png"
     
     def stop(self, app):
         app.playerGif.stop()
