@@ -840,6 +840,7 @@ class Application():
         #u online modu je vec odabrana pozadina
         if self.playerModes[1] != "online":
             self.selectEnvironment()
+        else: self.selectEnvironment(self.onlineGameStrategy.randEnvironment)
         
         self.playerEnergyBar["maximum"] = 100
         self.playerHealthBar["maximum"] = 100

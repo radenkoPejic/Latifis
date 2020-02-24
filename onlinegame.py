@@ -96,6 +96,7 @@ class OnlineGameStrategy(GameStrategy):
         self.received = [False, False, False]
         self.coinSent = False
         self.gameStarted = False
+        self.randEnvironment = -1
         self.playerCoin = -1
     
     #callback pri uspostavljanju igre i slanju poruke 0 
@@ -155,8 +156,7 @@ class OnlineGameStrategy(GameStrategy):
         else:
             pom = min(0.49, self.enemyCoin)
         
-        randEnvironment = floor(pom * 8)
-        self.app.selectEnvironment(randEnvironment)
+        self.randEnvironment = floor(pom * 8)
         self.app.pubnub.publish().channel("chan-1").message([1,self.prepare(self.app.players[0]), self.app.selectedPlayer, self.playerCoin]).pn_async(self.my_publish_callback)
 
   
